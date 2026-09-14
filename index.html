@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AETHER TRUCKING // 3D Autonomous Dispatch System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        :root {
+            --bg: #05070D;
+            --bg-card: rgba(10, 15, 29, 0.7);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(59, 130, 246, 0.35);
+            --accent-blue: #3B82F6;
+            --accent-cyan: #06B6D4;
+            --accent-amber: #F59E0B;
+            --accent-emerald: #10B981;
+            --text: #F3F4F6;
+            --text-muted: #94A3B8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(30, 58, 138, 0.18) 0%, transparent 60%),
+                radial-gradient(circle at 100% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 50%);
+        }
+
+        /* 3D WebGL Canvas */
+        #webgl-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: auto;
+        }
+
+        /* Content Overlay */
+        .content-layer {
+            position: relative;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .interactive {
+            pointer-events: auto;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 48px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #fff;
+        }
+
+        .logo-mark {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #1E3A8A, #3B82F6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            font-size: 18px;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .logo-text {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: #fff;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563EB, #3B82F6);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 25px rgba(37, 99, 235, 0.6);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 85vh;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 48px;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            align-items: center;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            font-size: 12px;
+            font-weight: 600;
+            color: #60A5FA;
+            margin-bottom: 24px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #10B981;
+            box-shadow: 0 0 10px #10B981;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.4); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        .hero-title {
+            font-size: clamp(40px, 5.5vw, 68px);
+            font-weight: 800;
+            line-height: 1.08;
+            letter-spacing: -1.5px;
+            margin-bottom: 20px;
+            background: linear-gradient(180deg, #FFFFFF 40%, #94A3B8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 17px;
+            line-height: 1.65;
+            color: var(--text-muted);
+            max-width: 520px;
+            margin-bottom: 36px;
+        }
+
+        .hero-ctas {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 48px;
+        }
+
+        .btn-large {
+            padding: 14px 32px;
+            font-size: 15px;
+            border-radius: 10px;
+        }
+
+        /* Floating 3D Load Cards */
+        .load-cards-column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            perspective: 1000px;
+        }
+
+        .load-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .load-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+            opacity: 0.6;
+        }
+
+        .load-card:hover {
+            transform: translateY(-4px) translateZ(10px);
+            border-color: var(--border-glow);
+            box-shadow: 0 25px 50px rgba(59, 130, 246, 0.15);
+        }
+
+        .load-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .load-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: #60A5FA;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-ready { background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-booking { background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-transit { background: rgba(59, 130, 246, 0.15); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.3); }
+
+        .route-line {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: #fff;
+        }
+
+        .route-arrow {
+            color: var(--accent-cyan);
+            font-size: 18px;
+        }
+
+        .load-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .metric-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .metric-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .metric-rate {
+            color: #10B981;
+        }
+
+        /* 3D Camera Controls HUD */
+        .camera-hud {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 8px 14px;
+            display: flex;
+            gap: 8px;
+            z-index: 20;
+        }
+
+        .cam-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cam-btn.active, .cam-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60A5FA;
+        }
+
+        /* Services Grid Section */
+        .services-section {
+            max-width: 1400px;
+            margin: 60px auto 100px;
+            padding: 0 48px;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 640px;
+            margin: 0 auto 60px;
+        }
+
+        .section-tag {
+            font-size: 11px;
+            font-weight: 700;
+            color: #3B82F6;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -0.8px;
+            margin-bottom: 16px;
+            color: #fff;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .service-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px 24px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        .service-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .service-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            display: grid;
+            place-items: center;
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #60A5FA;
+        }
+
+        .service-name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .service-desc {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .service-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #10B981;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Live Calculator Bar */
+        .calculator-container {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 58, 138, 0.3));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 1400px;
+            margin: 40px auto 120px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .calc-title {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .calc-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        .slider-group {
+            margin-bottom: 24px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .slider-val {
+            color: #60A5FA;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        input[type=range] {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #3B82F6;
+            cursor: pointer;
+            box-shadow: 0 0 10px #3B82F6;
+        }
+
+        .revenue-display {
+            background: rgba(10, 15, 29, 0.9);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+        }
+
+        .rev-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .rev-amount {
+            font-size: 44px;
+            font-weight: 800;
+            color: #10B981;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 6px;
+        }
+
+        .rev-sub {
+            font-size: 13px;
+            color: #94A3B8;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 48px;
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: #64748B;
+        }
+
+        @media (max-width: 1024px) {
+            .hero { grid-template-columns: 1fr; gap: 40px; }
+            .calculator-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 3D Three.js Canvas -->
+    <div id="webgl-container"></div>
+
+    <!-- UI Overlay Layer -->
+    <div class="content-layer">
+        
+        <!-- Navigation -->
+        <nav class="interactive">
+            <a href="#" class="logo">
+                <div class="logo-mark">&#9650;</div>
+                <div class="logo-text">AETHER // DISPATCH</div>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#services">Services</a></li>
+                <li><a href="#loads">Live Loads</a></li>
+                <li><a href="#calculator">Revenue Calculator</a></li>
+                <li><a href="#fleet">Carrier Network</a></li>
+            </ul>
+            <div class="nav-actions">
+                <a href="#dispatcher" class="btn-ghost">Talk to a Dispatcher</a>
+                <a href="#get-started" class="btn-primary">Get Started &rarr;</a>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content interactive">
+                <div class="hero-badge">
+                    <span class="pulse-dot"></span>
+                    24/7 Autonomous Freight Intelligence
+                </div>
+                <h1 class="hero-title">We Find the Loads.<br>You Keep Moving.</h1>
+                <p class="hero-desc">
+                    High-paying freight matching, direct broker rate negotiations, and dedicated dispatcher engineering for independent owner-operators and carrier fleets. Maximize your RPM with zero downtime.
+                </p>
+                <div class="hero-ctas">
+                    <a href="#get-started" class="btn-primary btn-large">Get Started Now &rarr;</a>
+                    <a href="#dispatcher" class="btn-ghost btn-large">&#9742; Talk to a Dispatcher</a>
+                </div>
+            </div>
+
+            <!-- Floating 3D Load Cards -->
+            <div class="load-cards-column interactive" id="loads">
+                <!-- Card 1 -->
+                <div class="load-card">
+                    <div class="load-card-header">
+                        <span class="load-id">LOAD #7829-TX</span>
+                        <span class="status-badge status-ready">Ready for Dispatch</span>
+                    </div>
+                    <div class="route-line">
+                        <span>Chicago, IL</span>
+                        <span class="route-arrow">&rarr;</span>
+                        <span>Dallas, TX</span>
+                    </div>
+                    <div class="load-metrics">
+                        <div>
+                            <div class="metric-label">Rate</div>
+                            <div class="metric-val metric-rate">$3,450</div>
+                        </div>
+                        <div>
+                            <div class="metric-label">RPM</div>
+                            <div class="metric-val">$3.73/mi</div>
+                        </div>
+                        <div>
+                            <div class="metric-label">Distance</div>
+                            <div class="metric-val">924 mi</div>
+                        </div>
+                        <div>
+                            <div class="metric-label">Equipment</div>
+                            <div class="metric-val">53' Dry Van</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="load-card">
+                    <div class="load-card-header">
+                        <span class="load-id">LOAD #8104-PA</span>
+                        <span class="status-badge status-booking">Booking in Progress</span>
+                    </div>
+                    <div class="route-line">
+                        <span>Atlanta, GA</span>
+                        <span class="route-arrow">&rarr;</span>
+                        <span>Philadelphia, PA</span>
+                    </div>
+                    <div class="load-metrics">
+                        <div>
+                            <div class="metric-label">Rate</div>
+                            <div class="metric-val metric-rate">$2,900</div>
+                        </div>
+                        <div>
+                            <div class="metric-label">RPM</div>
+                            <div class="metric-val">$3.71/mi</div>
+                        </div>
+                        <div>
+                            <div class="metric-label">Distance</div>
+                            <div class="metric-val">780 mi</div>
+                        </div>
+                        <div>
+                            <div class="metric-label">Equipment</div>
+                            <div class="metric-val">Reefer (-10°F)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="load-card">
+                    <div class="load-card-header">
+                        <span class="load-id">LOAD #8422-AZ</span>
+                        <span class="status-badge status-transit">In Transit</span>
+                    </div>
+                    <div class="route-line">
+                        <span>Los Angeles, CA</span>
+                        <span class="route-arrow">&rarr;</span>
+                        <span>Phoenix, AZ</span>
+                    </div>
+                    <div class="load-metrics">
+                        <div>
+                            <div class="metric-label">Rate</div>
+                            <div class="metric-val metric-rate">$1,650</div>
+                        </div>
+                        <div>
+                            <div class="metric-label">RPM</div>
+                            <div class="metric-val">$4.45/mi</div>
+                        </div>
+                        <div>
+                            <div class="metric-label">Distance</div>
+                            <div class="metric-val">370 mi</div>
+                        </div>
+                        <div>
+                            <div class="metric-label">Equipment</div>
+                            <div class="metric-val">Flatbed 48'</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Camera Perspective Controls HUD -->
+        <div class="camera-hud interactive">
+            <button class="cam-btn active" onclick="setCameraView('front')">Cinematic Angle</button>
+            <button class="cam-btn" onclick="setCameraView('side')">Profile View</button>
+            <button class="cam-btn" onclick="setCameraView('top')">Radar Orbit</button>
+            <button class="cam-btn" onclick="toggleHeadlights()">Toggle Lights</button>
+        </div>
+
+        <!-- 5 Interactive Services Section -->
+        <section class="services-section interactive" id="services">
+            <div class="section-header">
+                <div class="section-tag">Dedicated Operational Architecture</div>
+                <h2 class="section-title">Built for High-Yield Logistics</h2>
+                <p style="color: var(--text-muted); font-size: 15px;">Five core pillars engineered to protect your margins and optimize round-trip mileage.</p>
+            </div>
+
+            <div class="services-grid">
+                <!-- 1. Load Finding -->
+                <div class="service-card">
+                    <div class="service-icon">&#9678;</div>
+                    <h3 class="service-name">Load Finding</h3>
+                    <p class="service-desc">Multi-board real-time aggregation with algorithmic spot-market scanning to locate premium loads before competitors.</p>
+                    <div class="service-status-pill"><span class="pulse-dot"></span> LIVE SCANNING</div>
+                </div>
+
+                <!-- 2. Broker Negotiation -->
+                <div class="service-card">
+                    <div class="service-icon">&#9878;</div>
+                    <h3 class="service-name">Broker Negotiation</h3>
+                    <p class="service-desc">Experienced dispatch negotiators securing top-dollar rate confirmations, layover fees, and detention pay.</p>
+                    <div class="service-status-pill"><span class="pulse-dot"></span> MAX RPM ACTIVE</div>
+                </div>
+
+                <!-- 3. Load Booking -->
+                <div class="service-card">
+                    <div class="service-icon">&#9997;</div>
+                    <h3 class="service-name">Load Booking</h3>
+                    <p class="service-desc">Instant packet execution, insurance certificate processing, and rapid credit checks so you get rolling without paperwork delay.</p>
+                    <div class="service-status-pill"><span class="pulse-dot"></span> INSTANT SETUP</div>
+                </div>
+
+                <!-- 4. Equipment Support -->
+                <div class="service-card">
+                    <div class="service-icon">&#9881;</div>
+                    <h3 class="service-name">Equipment Support</h3>
+                    <p class="service-desc">Tailored routing for Dry Van, Reefer, Flatbed, Step-Deck, and Intermodal containers with specialized weight permits.</p>
+                    <div class="service-status-pill"><span class="pulse-dot"></span> MULTI-FLEET</div>
+                </div>
+
+                <!-- 5. Carrier Support -->
+                <div class="service-card">
+                    <div class="service-icon">&#9742;</div>
+                    <h3 class="service-name">Carrier Support</h3>
+                    <p class="service-desc">Dedicated 24/7 personal dispatcher, weather routing, fuel card discount coordination, and rapid factoring integration.</p>
+                    <div class="service-status-pill"><span class="pulse-dot"></span> 24/7 STANDBY</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dynamic Rate & Gross Revenue Calculator -->
+        <section class="calculator-container interactive" id="calculator">
+            <div>
+                <h3 class="calc-title">Dispatch Yield Calculator</h3>
+                <p class="calc-desc">Calculate your projected weekly & monthly revenue based on your operational target miles and rate per mile.</p>
+                
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span>Weekly Mileage Target:</span>
+                        <span class="slider-val" id="miles-val">2,800 miles</span>
+                    </div>
+                    <input type="range" id="miles-slider" min="1500" max="4500" step="100" value="2800" oninput="updateCalculator()">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span>Target Rate Per Mile ($/mi):</span>
+                        <span class="slider-val" id="rpm-val">$3.65 / mi</span>
+                    </div>
+                    <input type="range" id="rpm-slider" min="2.50" max="5.00" step="0.05" value="3.65" oninput="updateCalculator()">
+                </div>
+            </div>
+
+            <div class="revenue-display">
+                <div class="rev-label">Estimated Gross Revenue</div>
+                <div class="rev-amount" id="weekly-rev">$10,220</div>
+                <div class="rev-sub">Weekly Gross (approx. <strong id="monthly-rev" style="color:#fff;">$44,280</strong> / mo)</div>
+                <a href="#get-started" class="btn-primary" style="margin-top: 24px; width: 100%; justify-content: center;">Lock In This Rate &rarr;</a>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="interactive">
+            <div>&copy; 2026 AETHER TRUCKING DISPATCH // High-Tech Freight Logistics. All rights reserved.</div>
+            <div style="font-family:'JetBrains Mono'; font-size:11px; color:#475569;">ENGINEERED BY ASSEMBLAGE • 3D SCROLLCRAFT</div>
+        </footer>
+
+    </div>
+
+    <!-- Three.js 3D Semi-Truck & Telemetry Script -->
+    <script>
+        const container = document.getElementById('webgl-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x05070D, 0.025);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(16, 7, 18);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI / 2 - 0.02; // Don't go below ground
+        controls.minDistance = 8;
+        controls.maxDistance = 45;
+        controls.target.set(0, 2, 0);
+
+        // Ambient and Directional Lights
+        const ambientLight = new THREE.AmbientLight(0x1E293B, 1.2);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0x93C5FD, 2.5);
+        dirLight.position.set(20, 30, 20);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        scene.add(dirLight);
+
+        const cyanFill = new THREE.PointLight(0x06B6D4, 2, 30);
+        cyanFill.position.set(-15, 6, -10);
+        scene.add(cyanFill);
+
+        // Ground Grid with Telemetry Route Lines
+        const gridHelper = new THREE.GridHelper(80, 80, 0x1E3A8A, 0x0F172A);
+        gridHelper.position.y = 0;
+        scene.add(gridHelper);
+
+        // Ground reflection plane
+        const floorGeo = new THREE.PlaneGeometry(120, 120);
+        const floorMat = new THREE.MeshStandardMaterial({
+            color: 0x030509,
+            roughness: 0.2,
+            metalness: 0.8
+        });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        // Procedural Detailed 3D Semi-Truck Group
+        const truckGroup = new THREE.Group();
+        truckGroup.position.set(3, 0, -2);
+        scene.add(truckGroup);
+
+        // Materials
+        const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x0F172A, roughness: 0.3, metalness: 0.8 });
+        const cabMat = new THREE.MeshStandardMaterial({ color: 0x1E3A8A, roughness: 0.2, metalness: 0.6 });
+        const chromeMat = new THREE.MeshStandardMaterial({ color: 0xE2E8F0, roughness: 0.05, metalness: 0.95 });
+        const glassMat = new THREE.MeshPhysicalMaterial({
+            color: 0x60A5FA,
+            transparent: true,
+            opacity: 0.45,
+            roughness: 0.1,
+            metalness: 0.1,
+            transmission: 0.8
+        });
+        const rubberMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.8, metalness: 0.1 });
+        const trailerMat = new THREE.MeshStandardMaterial({ color: 0xCBD5E1, roughness: 0.3, metalness: 0.5 });
+        const ledGlowMat = new THREE.MeshBasicMaterial({ color: 0x60A5FA });
+        const orangeLedMat = new THREE.MeshBasicMaterial({ color: 0xF59E0B });
+        const redLedMat = new THREE.MeshBasicMaterial({ color: 0xEF4444 });
+
+        // 1. Semi-Truck Cabin
+        const cabBase = new THREE.Mesh(new THREE.BoxGeometry(3.2, 2.2, 5.2), cabMat);
+        cabBase.position.set(0, 2.2, 5.5);
+        cabBase.castShadow = true;
+        truckGroup.add(cabBase);
+
+        // Aerodynamic Sleeper Roof
+        const roofAero = new THREE.Mesh(new THREE.BoxGeometry(3.1, 1.2, 3.8), cabMat);
+        roofAero.position.set(0, 3.9, 5.0);
+        roofAero.castShadow = true;
+        truckGroup.add(roofAero);
+
+        // Front Hood & Grille
+        const hood = new THREE.Mesh(new THREE.BoxGeometry(2.8, 1.4, 2.8), cabMat);
+        hood.position.set(0, 1.8, 8.8);
+        hood.castShadow = true;
+        truckGroup.add(hood);
+
+        const grille = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.2, 0.2), chromeMat);
+        grille.position.set(0, 1.8, 10.2);
+        truckGroup.add(grille);
+
+        // Front Windshield
+        const windshield = new THREE.Mesh(new THREE.BoxGeometry(2.9, 1.2, 0.1), glassMat);
+        windshield.position.set(0, 3.0, 7.5);
+        windshield.rotation.x = -Math.PI / 10;
+        truckGroup.add(windshield);
+
+        // Side Windows
+        const sideWinL = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.9, 1.8), glassMat);
+        sideWinL.position.set(-1.62, 2.9, 6.2);
+        truckGroup.add(sideWinL);
+        const sideWinR = sideWinL.clone();
+        sideWinR.position.x = 1.62;
+        truckGroup.add(sideWinR);
+
+        // Chrome Dual Exhaust Stacks
+        const exhaustGeo = new THREE.CylinderGeometry(0.12, 0.12, 4.2, 16);
+        const exhaustL = new THREE.Mesh(exhaustGeo, chromeMat);
+        exhaustL.position.set(-1.5, 4.0, 3.2);
+        truckGroup.add(exhaustL);
+        const exhaustR = exhaustL.clone();
+        exhaustR.position.x = 1.5;
+        truckGroup.add(exhaustR);
+
+        // Chrome Fuel Tanks
+        const tankGeo = new THREE.CylinderGeometry(0.55, 0.55, 3.2, 16);
+        const tankL = new THREE.Mesh(tankGeo, chromeMat);
+        tankL.rotation.x = Math.PI / 2;
+        tankL.position.set(-1.6, 1.1, 4.6);
+        truckGroup.add(tankL);
+        const tankR = tankL.clone();
+        tankR.position.x = 1.6;
+        truckGroup.add(tankR);
+
+        // Headlights (LED Mesh + Spotlights)
+        const hlGeo = new THREE.BoxGeometry(0.5, 0.35, 0.1);
+        const hlMeshL = new THREE.Mesh(hlGeo, ledGlowMat);
+        hlMeshL.position.set(-1.0, 1.6, 10.25);
+        truckGroup.add(hlMeshL);
+        const hlMeshR = hlMeshL.clone();
+        hlMeshR.position.x = 1.0;
+        truckGroup.add(hlMeshR);
+
+        const spotL = new THREE.SpotLight(0x93C5FD, 4, 30, Math.PI / 6, 0.4);
+        spotL.position.set(-1.0, 1.6, 10.3);
+        spotL.target.position.set(-1.0, 0.5, 25);
+        truckGroup.add(spotL);
+        truckGroup.add(spotL.target);
+
+        const spotR = new THREE.SpotLight(0x93C5FD, 4, 30, Math.PI / 6, 0.4);
+        spotR.position.set(1.0, 1.6, 10.3);
+        spotR.target.position.set(1.0, 0.5, 25);
+        truckGroup.add(spotR);
+        truckGroup.add(spotR.target);
+
+        let headlightsOn = true;
+        function toggleHeadlights() {
+            headlightsOn = !headlightsOn;
+            spotL.intensity = headlightsOn ? 4 : 0;
+            spotR.intensity = headlightsOn ? 4 : 0;
+            hlMeshL.material = headlightsOn ? ledGlowMat : darkMetalMat;
+            hlMeshR.material = headlightsOn ? ledGlowMat : darkMetalMat;
+        }
+
+        // 2. 53' Semi-Trailer
+        const trailerBody = new THREE.Mesh(new THREE.BoxGeometry(3.3, 3.6, 13.5), trailerMat);
+        trailerBody.position.set(0, 3.2, -4.5);
+        trailerBody.castShadow = true;
+        trailerBody.receiveShadow = true;
+        truckGroup.add(trailerBody);
+
+        // Trailer Top / Edge Rails
+        const railTop = new THREE.Mesh(new THREE.BoxGeometry(3.35, 0.15, 13.6), chromeMat);
+        railTop.position.set(0, 5.05, -4.5);
+        truckGroup.add(railTop);
+
+        // Refrigeration Unit (Reefer front nose)
+        const reeferUnit = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.0, 0.8), darkMetalMat);
+        reeferUnit.position.set(0, 3.5, 2.4);
+        truckGroup.add(reeferUnit);
+
+        const reeferLed = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.2, 0.1), ledGlowMat);
+        reeferLed.position.set(0, 4.2, 2.85);
+        truckGroup.add(reeferLed);
+
+        // 3. Wheels & Tandem Axles
+        const wheelGeo = new THREE.CylinderGeometry(0.65, 0.65, 0.5, 24);
+        const rimGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.52, 16);
+        const wheels = [];
+
+        function createWheel(x, y, z) {
+            const wGroup = new THREE.Group();
+            const tire = new THREE.Mesh(wheelGeo, rubberMat);
+            tire.rotation.z = Math.PI / 2;
+            tire.castShadow = true;
+            wGroup.add(tire);
+
+            const rim = new THREE.Mesh(rimGeo, chromeMat);
+            rim.rotation.z = Math.PI / 2;
+            wGroup.add(rim);
+
+            wGroup.position.set(x, y, z);
+            truckGroup.add(wGroup);
+            wheels.push(wGroup);
+            return wGroup;
+        }
+
+        // Front steering axle
+        createWheel(-1.5, 0.65, 8.5);
+        createWheel(1.5, 0.65, 8.5);
+
+        // Drive tandem axles (cab rear)
+        createWheel(-1.5, 0.65, 3.4);
+        createWheel(1.5, 0.65, 3.4);
+        createWheel(-1.5, 0.65, 2.0);
+        createWheel(1.5, 0.65, 2.0);
+
+        // Trailer tandem axles (trailer rear)
+        createWheel(-1.5, 0.65, -8.2);
+        createWheel(1.5, 0.65, -8.2);
+        createWheel(-1.5, 0.65, -9.6);
+        createWheel(1.5, 0.65, -9.6);
+
+        // Animated Route Pulse Curve (Neon GPS Navigation Path)
+        const curvePoints = [
+            new THREE.Vector3(-15, 0.05, -25),
+            new THREE.Vector3(-8, 0.05, -12),
+            new THREE.Vector3(3, 0.05, 0),
+            new THREE.Vector3(8, 0.05, 14),
+            new THREE.Vector3(18, 0.05, 30)
+        ];
+        const routeCurve = new THREE.CatmullRomCurve3(curvePoints);
+        const routeGeo = new THREE.TubeGeometry(routeCurve, 64, 0.08, 8, false);
+        const routeMat = new THREE.MeshBasicMaterial({ color: 0x06B6D4, wireframe: false });
+        const routeMesh = new THREE.Mesh(routeGeo, routeMat);
+        scene.add(routeMesh);
+
+        // Moving GPS Pulse Particle
+        const pulseSphere = new THREE.Mesh(
+            new THREE.SphereGeometry(0.35, 16, 16),
+            new THREE.MeshBasicMaterial({ color: 0x60A5FA })
+        );
+        scene.add(pulseSphere);
+
+        // Floating Data Nodes / Hologram telemetry rings
+        const ringGeo = new THREE.RingGeometry(0.8, 0.9, 32);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0x3B82F6, side: THREE.DoubleSide });
+        const ringNode = new THREE.Mesh(ringGeo, ringMat);
+        ringNode.rotation.x = Math.PI / 2;
+        ringNode.position.set(3, 0.06, 0);
+        scene.add(ringNode);
+
+        // Camera presets
+        function setCameraView(preset) {
+            document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (preset === 'front') {
+                camera.position.set(14, 6, 16);
+                controls.target.set(1, 2, 2);
+            } else if (preset === 'side') {
+                camera.position.set(24, 4, -2);
+                controls.target.set(0, 2.5, -2);
+            } else if (preset === 'top') {
+                camera.position.set(0, 32, 5);
+                controls.target.set(0, 0, 0);
+            }
+        }
+
+        // Live Yield Calculator Logic
+        function updateCalculator() {
+            const miles = parseInt(document.getElementById('miles-slider').value);
+            const rpm = parseFloat(document.getElementById('rpm-slider').value);
+
+            document.getElementById('miles-val').innerText = miles.toLocaleString() + ' miles';
+            document.getElementById('rpm-val').innerText = '$' + rpm.toFixed(2) + ' / mi';
+
+            const weekly = Math.round(miles * rpm);
+            const monthly = Math.round(weekly * 4.33);
+
+            document.getElementById('weekly-rev').innerText = '$' + weekly.toLocaleString();
+            document.getElementById('monthly-rev').innerText = '$' + monthly.toLocaleString();
+        }
+
+        // Animation Loop
+        let clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsed = clock.getElapsedTime();
+
+            // Rotate wheels slightly to simulate slow motion telemetry
+            wheels.forEach(w => {
+                w.children[0].rotation.x += 0.015;
+            });
+
+            // Pulse particle follows GPS route
+            const t = (elapsed * 0.15) % 1;
+            const pt = routeCurve.getPoint(t);
+            pulseSphere.position.copy(pt);
+            pulseSphere.position.y += 0.2;
+
+            // Expand holographic telemetry ring
+            const s = 1 + (Math.sin(elapsed * 2.5) * 0.2);
+            ringNode.scale.set(s, s, s);
+
+            // Subtle gentle hover on truck group
+            truckGroup.position.y = Math.sin(elapsed * 1.5) * 0.04;
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Responsive resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
