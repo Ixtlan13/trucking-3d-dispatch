@@ -3,50 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AETHER FREIGHT // High-Authority 3D Autonomous Dispatch Platform</title>
+    <title>AETHER // NEXT-GEN AUTONOMOUS FREIGHT PLATFORM</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
         :root {
-            --bg-body: #F8FAFC;
-            --card-glass: rgba(255, 255, 255, 0.88);
-            --card-border: rgba(15, 23, 42, 0.12);
+            --glass-card: rgba(255, 255, 255, 0.94);
+            --glass-border: rgba(15, 23, 42, 0.1);
             --text-heading: #0F172A;
             --text-body: #334155;
-            --text-muted: #64748B;
+            --text-dim: #64748B;
             --brand-primary: #1D4ED8;
             --brand-cyan: #0284C7;
-            --brand-amber: #D97706;
             --brand-emerald: #059669;
-            --shadow-subtle: 0 12px 36px rgba(15, 23, 42, 0.08);
-            --blur: blur(24px);
+            --brand-amber: #D97706;
+            --shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(15, 23, 42, 0.05);
         }
 
-        body.mode-sunset {
-            --bg-body: #1E1226;
-            --card-glass: rgba(38, 20, 48, 0.85);
-            --card-border: rgba(249, 115, 22, 0.3);
+        body.theme-sunset {
+            --glass-card: rgba(36, 16, 46, 0.92);
+            --glass-border: rgba(249, 115, 22, 0.25);
             --text-heading: #FFF7ED;
             --text-body: #FED7AA;
-            --text-muted: #FB923C;
+            --text-dim: #FB923C;
             --brand-primary: #EA580C;
             --brand-cyan: #F97316;
-            --shadow-subtle: 0 12px 40px rgba(0, 0, 0, 0.5);
+            --shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.6);
         }
 
-        body.mode-midnight {
-            --bg-body: #050811;
-            --card-glass: rgba(11, 18, 33, 0.82);
-            --card-border: rgba(56, 189, 248, 0.2);
+        body.theme-midnight {
+            --glass-card: rgba(11, 18, 33, 0.92);
+            --glass-border: rgba(56, 189, 248, 0.2);
             --text-heading: #F8FAFC;
             --text-body: #94A3B8;
-            --text-muted: #64748B;
+            --text-dim: #64748B;
             --brand-primary: #2563EB;
             --brand-cyan: #38BDF8;
-            --shadow-subtle: 0 12px 40px rgba(0, 0, 0, 0.6);
+            --shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.7);
         }
 
         * {
@@ -56,16 +52,18 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        body {
-            background-color: var(--bg-body);
-            color: var(--text-heading);
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
             font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-            overflow-x: hidden;
-            transition: background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            color: var(--text-heading);
+            background: #020617;
+            user-select: none;
         }
 
         #webgl-stage {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             width: 100vw;
@@ -73,706 +71,538 @@
             z-index: 1;
         }
 
-        .hud-overlay {
-            position: relative;
+        .hud-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             z-index: 10;
             pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 30px 16px;
         }
 
-        .interactive-zone {
+        .interactive {
             pointer-events: auto;
         }
 
-        /* Top Bar */
+        /* Top Nav */
         header {
-            max-width: 1640px;
-            margin: 0 auto;
-            padding: 24px 48px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            width: 100%;
         }
 
-        .brand-badge {
+        .brand-pill {
+            background: var(--glass-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 999px;
+            padding: 6px 18px 6px 8px;
             display: flex;
             align-items: center;
-            gap: 14px;
-            text-decoration: none;
-            color: inherit;
+            gap: 10px;
+            backdrop-filter: blur(24px);
+            box-shadow: var(--shadow);
         }
 
-        .brand-symbol {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
             background: linear-gradient(135deg, #1D4ED8, #0284C7);
             color: #fff;
             display: grid;
             place-items: center;
             font-weight: 900;
-            font-size: 20px;
-            box-shadow: 0 4px 20px rgba(29, 78, 216, 0.35);
+            font-size: 15px;
         }
 
-        .brand-title {
-            font-size: 17px;
+        .brand-name {
+            font-size: 13px;
             font-weight: 900;
             letter-spacing: 1px;
-            display: flex;
-            flex-direction: column;
+            text-transform: uppercase;
         }
 
-        .brand-sub {
-            font-size: 11px;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text-muted);
-            letter-spacing: 0.5px;
-            font-weight: 600;
-        }
-
-        .header-actions {
+        .top-right {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
         }
 
-        /* Environment Pill */
-        .segmented-switcher {
-            background: var(--card-glass);
-            border: 1px solid var(--card-border);
-            backdrop-filter: var(--blur);
+        .env-pill {
+            background: var(--glass-card);
+            border: 1px solid var(--glass-border);
             border-radius: 999px;
             padding: 4px;
             display: flex;
             gap: 2px;
-            box-shadow: var(--shadow-subtle);
+            backdrop-filter: blur(24px);
+            box-shadow: var(--shadow);
         }
 
-        .switcher-btn {
+        .env-btn {
             border: none;
             background: transparent;
-            color: var(--text-muted);
-            font-size: 12px;
+            color: var(--text-dim);
+            font-size: 11px;
             font-weight: 700;
-            padding: 8px 16px;
+            padding: 6px 14px;
             border-radius: 999px;
             cursor: pointer;
             transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
             font-family: 'JetBrains Mono', monospace;
         }
 
-        .switcher-btn.active {
+        .env-btn.active {
             background: var(--brand-primary);
             color: #fff;
-            box-shadow: 0 2px 12px rgba(29, 78, 216, 0.4);
+            box-shadow: 0 2px 8px rgba(29, 78, 216, 0.35);
         }
 
-        .btn-prime {
+        .btn-cta {
             background: linear-gradient(135deg, #1D4ED8, #0284C7);
             color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 11px 24px;
-            border-radius: 12px;
-            font-size: 13px;
+            border: none;
+            padding: 9px 18px;
+            border-radius: 999px;
+            font-size: 12px;
             font-weight: 800;
-            letter-spacing: 0.5px;
             cursor: pointer;
-            box-shadow: 0 4px 18px rgba(29, 78, 216, 0.35);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
+            box-shadow: 0 4px 14px rgba(29, 78, 216, 0.35);
+            transition: transform 0.2s ease;
         }
 
-        .btn-prime:hover {
+        .btn-cta:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(29, 78, 216, 0.5);
         }
 
-        /* Hero Area */
-        .hero-layout {
-            max-width: 1640px;
-            margin: 0 auto;
-            padding: 40px 48px 0;
-            min-height: calc(100vh - 120px);
+        /* Left Dock (Strictly constrained to 350px width, zero overlap) */
+        .workspace-row {
             display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            flex: 1;
         }
 
-        .hero-left {
-            max-width: 580px;
+        .dock-card {
+            background: var(--glass-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 26px 24px;
+            width: 350px;
+            backdrop-filter: blur(24px);
+            box-shadow: var(--shadow);
+            margin-left: 6px;
         }
 
         .status-chip {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             background: rgba(5, 150, 105, 0.12);
             border: 1px solid rgba(5, 150, 105, 0.3);
             color: var(--brand-emerald);
-            padding: 6px 14px;
+            padding: 4px 10px;
             border-radius: 999px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 800;
-            letter-spacing: 1px;
+            letter-spacing: 0.8px;
             font-family: 'JetBrains Mono', monospace;
-            margin-bottom: 22px;
+            margin-bottom: 12px;
         }
 
-        .status-beacon {
-            width: 8px;
-            height: 8px;
+        .chip-dot {
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background: var(--brand-emerald);
-            box-shadow: 0 0 10px var(--brand-emerald);
-            animation: pulse-ring 2s infinite;
+            box-shadow: 0 0 8px var(--brand-emerald);
         }
 
-        @keyframes pulse-ring {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(0.85); opacity: 0.4; }
-        }
-
-        .hero-headline {
-            font-size: 58px;
+        .hero-title {
+            font-size: 28px;
             font-weight: 900;
-            line-height: 1.05;
-            letter-spacing: -2px;
-            margin-bottom: 20px;
+            line-height: 1.1;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
         }
 
-        .hero-headline span.grad {
+        .hero-title span {
             background: linear-gradient(135deg, var(--brand-primary), var(--brand-cyan));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .hero-summary {
-            font-size: 16px;
-            line-height: 1.6;
+        .hero-text {
+            font-size: 12px;
+            line-height: 1.5;
             color: var(--text-body);
-            margin-bottom: 32px;
+            margin-bottom: 16px;
             font-weight: 500;
         }
 
-        .hero-cta-cluster {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 36px;
-        }
-
-        .btn-outline {
-            background: var(--card-glass);
-            border: 1px solid var(--card-border);
-            color: var(--text-heading);
-            padding: 11px 22px;
+        .kpi-row {
+            background: rgba(15, 23, 42, 0.04);
+            border: 1px solid var(--glass-border);
             border-radius: 12px;
-            font-size: 13px;
-            font-weight: 700;
-            backdrop-filter: var(--blur);
-            cursor: pointer;
-            box-shadow: var(--shadow-subtle);
-            transition: all 0.2s ease;
-        }
-
-        .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.95);
-            transform: translateY(-2px);
-        }
-
-        /* 3D Model Control Dock */
-        .dock-panel {
-            background: var(--card-glass);
-            border: 1px solid var(--card-border);
-            border-radius: 18px;
-            padding: 18px 24px;
-            backdrop-filter: var(--blur);
-            box-shadow: var(--shadow-subtle);
-            display: inline-flex;
-            flex-direction: column;
-            gap: 16px;
-            max-width: 480px;
-        }
-
-        .dock-setting {
+            padding: 8px 12px;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            gap: 18px;
-        }
-
-        .dock-title {
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
+            align-items: center;
+            margin-bottom: 16px;
             font-family: 'JetBrains Mono', monospace;
         }
 
-        .swatch-tray {
-            display: flex;
-            gap: 8px;
+        body.theme-sunset .kpi-row,
+        body.theme-midnight .kpi-row {
+            background: rgba(255, 255, 255, 0.05);
         }
 
-        .swatch-circle {
-            width: 28px;
-            height: 28px;
+        .kpi-val {
+            font-size: 17px;
+            font-weight: 900;
+            color: var(--brand-emerald);
+        }
+
+        .kpi-sub {
+            font-size: 9px;
+            color: var(--text-dim);
+            text-align: right;
+        }
+
+        .cta-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .btn-start {
+            flex: 1;
+            background: linear-gradient(135deg, #1D4ED8, #0284C7);
+            color: #fff;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(29, 78, 216, 0.35);
+            text-align: center;
+        }
+
+        .btn-calc {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: var(--text-heading);
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .card-footer {
+            border-top: 1px solid var(--glass-border);
+            padding-top: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .footer-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-label {
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-dim);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .color-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             border: 2px solid transparent;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
-        .swatch-circle.selected {
+        .dot.active {
             border-color: #0F172A;
-            transform: scale(1.18);
-            box-shadow: 0 0 12px rgba(15, 23, 42, 0.35);
+            transform: scale(1.25);
+            box-shadow: 0 0 6px rgba(15, 23, 42, 0.4);
         }
 
-        body.mode-sunset .swatch-circle.selected,
-        body.mode-midnight .swatch-circle.selected {
+        body.theme-sunset .dot.active,
+        body.theme-midnight .dot.active {
             border-color: #fff;
-            box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
         }
 
-        .color-viper-red { background: #DC2626; }
-        .color-sapphire-blue { background: #1D4ED8; }
-        .color-alaska-white { background: #F8FAFC; border: 1px solid #CBD5E1; }
-        .color-piano-black { background: #111827; }
+        .d-blue { background: #1D4ED8; }
+        .d-red { background: #DC2626; }
+        .d-silver { background: #E2E8F0; border: 1px solid #94A3B8; }
+        .d-black { background: #0B0F19; }
 
-        .cam-controls {
+        .cam-dock {
             display: flex;
-            gap: 6px;
+            gap: 3px;
         }
 
-        .cam-pill {
-            background: rgba(15, 23, 42, 0.06);
-            border: 1px solid var(--card-border);
+        .c-btn {
+            background: rgba(15, 23, 42, 0.05);
+            border: 1px solid var(--glass-border);
             color: var(--text-heading);
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 11px;
+            padding: 4px 7px;
+            border-radius: 5px;
+            font-size: 9px;
             font-weight: 700;
             font-family: 'JetBrains Mono', monospace;
             cursor: pointer;
-            transition: all 0.2s ease;
         }
 
-        body.mode-sunset .cam-pill,
-        body.mode-midnight .cam-pill {
+        body.theme-sunset .c-btn,
+        body.theme-midnight .c-btn {
             background: rgba(255, 255, 255, 0.08);
         }
 
-        .cam-pill.active, .cam-pill:hover {
+        .c-btn.active, .c-btn:hover {
             background: var(--brand-primary);
             color: #fff;
             border-color: var(--brand-cyan);
         }
 
-        /* Bottom Telemetry Ticker */
-        .live-ticker-rail {
-            margin: 32px 0 24px;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-        }
-
-        .ticker-tile {
-            background: var(--card-glass);
-            border: 1px solid var(--card-border);
-            border-radius: 14px;
-            padding: 18px 22px;
-            backdrop-filter: var(--blur);
-            box-shadow: var(--shadow-subtle);
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
-
-        .ticker-tile:hover {
-            transform: translateY(-3px);
-            border-color: var(--brand-cyan);
-        }
-
-        .tile-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 11px;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-
-        .tile-route {
-            font-size: 16px;
-            font-weight: 800;
+        /* Right Floating Telemetry */
+        .telemetry-tag {
+            position: absolute;
+            right: 30px;
+            top: 75px;
+            background: var(--glass-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 8px 14px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        .tile-payout {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
+            gap: 12px;
+            backdrop-filter: blur(24px);
+            box-shadow: var(--shadow);
             font-family: 'JetBrains Mono', monospace;
         }
 
-        .gross-figure {
-            font-size: 16px;
+        .tag-kpi {
+            font-size: 14px;
             font-weight: 900;
             color: var(--brand-emerald);
         }
 
-        .rate-mile {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-muted);
-        }
-
-        /* Calculator Section */
-        .calculator-block {
-            max-width: 1640px;
-            margin: 90px auto;
-            padding: 0 48px;
-        }
-
-        .calc-card {
-            background: var(--card-glass);
-            border: 1px solid var(--card-border);
-            border-radius: 24px;
-            padding: 54px;
-            backdrop-filter: var(--blur);
-            box-shadow: var(--shadow-subtle);
-            display: grid;
-            grid-template-columns: 1fr 440px;
-            gap: 60px;
-            align-items: center;
-        }
-
-        .calc-content h2 {
-            font-size: 38px;
-            font-weight: 900;
-            letter-spacing: -1px;
-            margin-bottom: 12px;
-        }
-
-        .calc-content p {
-            color: var(--text-body);
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 38px;
-        }
-
-        .range-wrapper {
-            margin-bottom: 28px;
-        }
-
-        .range-legend {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .range-val {
-            color: var(--brand-primary);
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 800;
-        }
-
-        input[type=range] {
-            width: 100%;
-            height: 8px;
-            background: rgba(15, 23, 42, 0.1);
-            border-radius: 999px;
-            outline: none;
-            -webkit-appearance: none;
-        }
-
-        body.mode-sunset input[type=range],
-        body.mode-midnight input[type=range] {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: #1D4ED8;
-            border: 2px solid #FFFFFF;
-            cursor: pointer;
-            box-shadow: 0 0 14px rgba(29, 78, 216, 0.6);
-        }
-
-        .yield-billboard {
-            background: #0F172A;
-            color: #FFFFFF;
-            border-radius: 20px;
-            padding: 44px 36px;
-            text-align: center;
-            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.3);
-            border: 1px solid rgba(56, 189, 248, 0.2);
-        }
-
-        .billboard-tag {
-            font-size: 11px;
-            letter-spacing: 2px;
+        .tag-lbl {
+            font-size: 8px;
+            color: var(--text-dim);
             text-transform: uppercase;
-            color: #94A3B8;
-            font-family: 'JetBrains Mono', monospace;
-            margin-bottom: 10px;
         }
 
-        .billboard-sum {
-            font-size: 54px;
-            font-weight: 900;
-            color: #10B981;
-            font-family: 'JetBrains Mono', monospace;
-            line-height: 1;
-            margin-bottom: 6px;
-        }
-
-        .billboard-unit {
-            font-size: 14px;
-            color: #94A3B8;
-            margin-bottom: 26px;
-        }
-
-        .billboard-breakdown {
-            border-top: 1px solid rgba(255, 255, 255, 0.12);
-            padding-top: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            font-size: 13px;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .billboard-row {
+        /* Bottom Running Marquee Line */
+        .bottom-ticker {
+            background: var(--glass-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 8px 18px;
             display: flex;
             justify-content: space-between;
-            color: #94A3B8;
+            align-items: center;
+            backdrop-filter: blur(24px);
+            box-shadow: var(--shadow);
+            width: 100%;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10.5px;
         }
 
-        .billboard-row strong {
-            color: #FFFFFF;
+        .ticker-lane {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .lane-city {
+            font-weight: 800;
+            color: var(--text-heading);
+        }
+
+        .lane-rate {
+            font-weight: 800;
+            color: var(--brand-emerald);
+        }
+
+        .lane-sep {
+            color: var(--glass-border);
         }
     </style>
 </head>
-<body class="mode-daylight">
+<body class="theme-daylight">
 
-    <!-- 3D Canvas Stage -->
+    <!-- 3D WebGL Canvas Layer -->
     <div id="webgl-stage"></div>
 
-    <!-- UI Overhead Layer -->
-    <div class="hud-overlay">
+    <!-- UI Overlay Layer -->
+    <div class="hud-layer">
         
-        <header class="interactive-zone">
-            <a href="#" class="brand-badge">
-                <div class="brand-symbol">⚡</div>
-                <div class="brand-title">
-                    <span>AETHER // FREIGHT</span>
-                    <span class="brand-sub">SOTA 3D DISPATCH FLEET</span>
-                </div>
-            </a>
+        <!-- Header -->
+        <header class="interactive">
+            <div class="brand-pill">
+                <div class="brand-icon">⚡</div>
+                <div class="brand-name">AETHER // DISPATCH</div>
+            </div>
 
-            <div class="header-actions">
-                <div class="segmented-switcher">
-                    <button class="switcher-btn active" id="btn-day" onclick="switchEnvironment('day')">☀️ DAYLIGHT</button>
-                    <button class="switcher-btn" id="btn-sunset" onclick="switchEnvironment('sunset')">🌅 SUNSET</button>
-                    <button class="switcher-btn" id="btn-night" onclick="switchEnvironment('night')">🌃 MIDNIGHT</button>
+            <div class="top-right">
+                <div class="env-pill">
+                    <button class="env-btn active" id="btn-day" onclick="switchTheme('daylight')">☀️ DAYLIGHT</button>
+                    <button class="env-btn" id="btn-sunset" onclick="switchTheme('sunset')">🌅 SUNSET</button>
+                    <button class="env-btn" id="btn-night" onclick="switchTheme('midnight')">🌃 MIDNIGHT</button>
                 </div>
 
-                <a href="#calc" class="btn-prime">
-                    <span>Onboard Fleet</span> &rarr;
-                </a>
+                <button class="btn-cta" onclick="alert('Carrier Dispatch: Direct line WhatsApp +972 53-246-4636 or dispatch@aether.io')">
+                    Onboard Fleet &rarr;
+                </button>
             </div>
         </header>
 
-        <main class="hero-layout">
-            <div class="hero-left interactive-zone">
+        <!-- Center: Left Dock ONLY -->
+        <div class="workspace-row">
+            <div class="dock-card interactive">
                 <div class="status-chip">
-                    <div class="status-beacon"></div>
-                    <span>DAT ONE SPOT INTELLIGENCE ACTIVE</span>
+                    <div class="chip-dot"></div>
+                    <span>DAT ONE SPOT RADAR ACTIVE</span>
                 </div>
 
-                <h1 class="hero-headline">
-                    We Find the Loads.<br>
-                    <span class="grad">You Keep Moving.</span>
+                <h1 class="hero-title">
+                    We Find Loads.<br>
+                    <span>You Keep Moving.</span>
                 </h1>
 
-                <p class="hero-summary">
-                    Enterprise spot-rate intelligence, aggressive broker negotiation, and zero-downtime dispatch architecture engineered for high-performing owner-operators and carrier fleets.
+                <p class="hero-text">
+                    Enterprise spot intelligence, aggressive broker negotiation, and zero-downtime dispatch architecture for high-performing carriers.
                 </p>
 
-                <div class="hero-cta-cluster">
-                    <button class="btn-prime" onclick="alert('Connecting to Senior Dispatch Lead via WhatsApp / Email...')">
+                <div class="kpi-row">
+                    <div>
+                        <div class="kpi-val">$10,080</div>
+                        <div style="font-size: 8px; color: var(--text-dim);">AVG. WEEKLY GROSS</div>
+                    </div>
+                    <div class="kpi-sub">
+                        <div style="color: var(--brand-primary); font-weight: 800;">5% FLAT FEE</div>
+                        <div>0% FORCED DISPATCH</div>
+                    </div>
+                </div>
+
+                <div class="cta-row">
+                    <button class="btn-start" onclick="alert('Connecting to Senior Dispatcher via WhatsApp / Email!')">
                         Start Dispatching &rarr;
                     </button>
-                    <button class="btn-outline" onclick="document.getElementById('calc').scrollIntoView({behavior: 'smooth'})">
-                        Calculate Weekly Gross
+                    <button class="btn-calc" onclick="alert('Simulation: 2,800 miles @ $3.60/mi = $10,080 gross. Net take-home after 5% fee: $9,576/wk.')">
+                        Calculate Yield
                     </button>
                 </div>
 
-                <div class="dock-panel">
-                    <div class="dock-setting">
-                        <span class="dock-title">Cab Lacquer</span>
-                        <div class="swatch-tray">
-                            <div class="swatch-circle color-sapphire-blue selected" onclick="setCabColor(0x1D4ED8, this)"></div>
-                            <div class="swatch-circle color-viper-red" onclick="setCabColor(0xDC2626, this)"></div>
-                            <div class="swatch-circle color-alaska-white" onclick="setCabColor(0xF8FAFC, this)"></div>
-                            <div class="swatch-circle color-piano-black" onclick="setCabColor(0x111827, this)"></div>
+                <div class="card-footer">
+                    <div class="footer-line">
+                        <span class="footer-label">Cab Finish</span>
+                        <div class="color-dots">
+                            <div class="dot d-blue active" onclick="setCabColor(0x1D4ED8, this)"></div>
+                            <div class="dot d-red" onclick="setCabColor(0xDC2626, this)"></div>
+                            <div class="dot d-silver" onclick="setCabColor(0xE2E8F0, this)"></div>
+                            <div class="dot d-black" onclick="setCabColor(0x0B0F19, this)"></div>
                         </div>
                     </div>
 
-                    <div class="dock-setting">
-                        <span class="dock-title">Perspective</span>
-                        <div class="cam-controls">
-                            <button class="cam-pill active" onclick="setCam(1, this)">[1] 3/4 Cruiser</button>
-                            <button class="cam-pill" onclick="setCam(2, this)">[2] Chrome Grille</button>
-                            <button class="cam-pill" onclick="setCam(3, this)">[3] 65mph Profile</button>
-                            <button class="cam-pill" onclick="setCam(4, this)">[4] Fleet Radar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="live-ticker-rail interactive-zone">
-                <div class="ticker-tile">
-                    <div class="tile-meta">
-                        <span>#7829-TX // 53' REEFER</span>
-                        <span style="color: var(--brand-emerald);">• READY</span>
-                    </div>
-                    <div class="tile-route">
-                        <span>Chicago, IL</span>
-                        <span style="color: var(--brand-cyan);">&rarr;</span>
-                        <span>Dallas, TX</span>
-                    </div>
-                    <div class="tile-payout">
-                        <span class="gross-figure">$3,850</span>
-                        <span class="rate-mile">924 mi @ $4.16/mi</span>
-                    </div>
-                </div>
-
-                <div class="ticker-tile">
-                    <div class="tile-meta">
-                        <span>#8104-PA // 53' DRY VAN</span>
-                        <span style="color: var(--brand-cyan);">• BOOKING</span>
-                    </div>
-                    <div class="tile-route">
-                        <span>Atlanta, GA</span>
-                        <span style="color: var(--brand-cyan);">&rarr;</span>
-                        <span>Philadelphia, PA</span>
-                    </div>
-                    <div class="tile-payout">
-                        <span class="gross-figure">$3,200</span>
-                        <span class="rate-mile">780 mi @ $4.10/mi</span>
-                    </div>
-                </div>
-
-                <div class="ticker-tile">
-                    <div class="tile-meta">
-                        <span>#8422-AZ // FLATBED 48'</span>
-                        <span style="color: var(--brand-amber);">• IN TRANSIT</span>
-                    </div>
-                    <div class="tile-route">
-                        <span>Los Angeles, CA</span>
-                        <span style="color: var(--brand-cyan);">&rarr;</span>
-                        <span>Phoenix, AZ</span>
-                    </div>
-                    <div class="tile-payout">
-                        <span class="gross-figure">$1,850</span>
-                        <span class="rate-mile">370 mi @ $5.00/mi</span>
-                    </div>
-                </div>
-
-                <div class="ticker-tile">
-                    <div class="tile-meta">
-                        <span>#9012-OH // 53' REEFER</span>
-                        <span style="color: var(--brand-emerald);">• READY</span>
-                    </div>
-                    <div class="tile-route">
-                        <span>Columbus, OH</span>
-                        <span style="color: var(--brand-cyan);">&rarr;</span>
-                        <span>Charlotte, NC</span>
-                    </div>
-                    <div class="tile-payout">
-                        <span class="gross-figure">$2,450</span>
-                        <span class="rate-mile">470 mi @ $5.21/mi</span>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <section class="calculator-block interactive-zone" id="calc">
-            <div class="calc-card">
-                <div class="calc-content">
-                    <h2>Weekly Revenue & Yield Engine</h2>
-                    <p>
-                        Simulate net earnings based on current DAT One national averages, dedicated lanes, and a transparent 5% flat fee with zero forced dispatch.
-                    </p>
-
-                    <div class="range-wrapper">
-                        <div class="range-legend">
-                            <span>Weekly Loaded Miles</span>
-                            <span class="range-val" id="disp-miles">2,800 miles</span>
-                        </div>
-                        <input type="range" id="input-miles" min="1500" max="4000" step="50" value="2800" oninput="calcYield()">
-                    </div>
-
-                    <div class="range-wrapper">
-                        <div class="range-legend">
-                            <span>Average Spot Rate per Mile</span>
-                            <span class="range-val" id="disp-rate">$3.60 / mi</span>
-                        </div>
-                        <input type="range" id="input-rate" min="2.50" max="5.00" step="0.05" value="3.60" oninput="calcYield()">
-                    </div>
-                </div>
-
-                <div class="yield-billboard">
-                    <div class="billboard-tag">Projected Gross Payout</div>
-                    <div class="billboard-sum" id="sum-weekly">$10,080</div>
-                    <div class="billboard-unit">per week / tractor</div>
-
-                    <div class="billboard-breakdown">
-                        <div class="billboard-row">
-                            <span>Monthly Gross:</span>
-                            <strong id="sum-monthly">$40,320</strong>
-                        </div>
-                        <div class="billboard-row">
-                            <span>Dispatch Fee (5%):</span>
-                            <strong id="sum-fee">$504</strong>
-                        </div>
-                        <div class="billboard-row">
-                            <span>Driver Net Take-Home:</span>
-                            <strong style="color: #10B981;" id="sum-net">$9,576</strong>
+                    <div class="footer-line">
+                        <span class="footer-label">Perspective</span>
+                        <div class="cam-dock">
+                            <button class="c-btn active" onclick="setCameraAngle(1, this)">[1] 3/4 Cruiser</button>
+                            <button class="c-btn" onclick="setCameraAngle(2, this)">[2] Grille</button>
+                            <button class="c-btn" onclick="setCameraAngle(3, this)">[3] 65mph</button>
+                            <button class="c-btn" onclick="setCameraAngle(4, this)">[4] Top</button>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+
+        <!-- Floating Telemetry Tag on Right -->
+        <div class="telemetry-tag interactive">
+            <div>
+                <div class="tag-kpi">65.0 MPH</div>
+                <div class="tag-lbl">Cruising Velocity</div>
+            </div>
+            <div style="border-left: 1px solid var(--glass-border); padding-left: 10px;">
+                <div class="tag-kpi" style="color: var(--brand-primary);">$4.16 / mi</div>
+                <div class="tag-lbl">Reefer National Spot</div>
+            </div>
+        </div>
+
+        <!-- Bottom Spot Rate Marquee Line -->
+        <footer class="bottom-ticker interactive">
+            <div class="ticker-lane">
+                <span style="color: var(--brand-emerald);">●</span>
+                <span class="lane-city">CHICAGO, IL &rarr; DALLAS, TX</span>
+                <span class="lane-rate">$3,850 ($4.16/mi)</span>
+            </div>
+            <span class="lane-sep">|</span>
+            <div class="ticker-lane">
+                <span style="color: var(--brand-cyan);">●</span>
+                <span class="lane-city">ATLANTA, GA &rarr; PHILADELPHIA, PA</span>
+                <span class="lane-rate">$3,200 ($4.10/mi)</span>
+            </div>
+            <span class="lane-sep">|</span>
+            <div class="ticker-lane">
+                <span style="color: var(--brand-amber);">●</span>
+                <span class="lane-city">LOS ANGELES, CA &rarr; PHOENIX, AZ</span>
+                <span class="lane-rate">$1,850 ($5.00/mi)</span>
+            </div>
+            <span class="lane-sep">|</span>
+            <div class="ticker-lane">
+                <span style="color: var(--brand-emerald);">●</span>
+                <span class="lane-city">COLUMBUS, OH &rarr; CHARLOTTE, NC</span>
+                <span class="lane-rate">$2,450 ($5.21/mi)</span>
+            </div>
+        </footer>
 
     </div>
 
     <!-- ========================================== -->
-    <!-- MASTERPIECE PROCEDURAL 3D WEBGL ENGINE -->
+    <!-- HIGH-FIDELITY AERODYNAMIC THREE.JS ENGINE -->
     <!-- ========================================== -->
     <script>
-        const container = document.getElementById('webgl-stage');
+        const canvasContainer = document.getElementById('webgl-stage');
         const scene = new THREE.Scene();
 
-        const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 800);
-        camera.position.set(18, 6.5, 22);
+        // Camera configuration with viewOffset shifting truck to right 65% of viewport
+        const camera = new THREE.PerspectiveCamera(34, window.innerWidth / window.innerHeight, 0.1, 1500);
+        
+        function applyCameraOffset() {
+            const shiftX = window.innerWidth < 1400 ? -180 : -220;
+            camera.setViewOffset(window.innerWidth, window.innerHeight, shiftX, 0, window.innerWidth, window.innerHeight);
+        }
+        applyCameraOffset();
+
+        let targetCam = new THREE.Vector3(12.0, 5.0, 20.0);
+        let targetLook = new THREE.Vector3(2.5, 2.0, -1.0);
+        camera.position.copy(targetCam);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -780,52 +610,52 @@
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.15;
-        container.appendChild(renderer.domElement);
+        renderer.toneMappingExposure = 1.18;
+        canvasContainer.appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.maxPolarAngle = Math.PI / 2 - 0.02;
-        controls.minDistance = 5;
-        controls.maxDistance = 60;
-        controls.target.set(0, 2.2, 0);
+        controls.minDistance = 6;
+        controls.maxDistance = 50;
+        controls.target.copy(targetLook);
 
         // ==========================================
-        // PROCEDURAL ENVIRONMENT CUBE & LIGHTING
+        // PROCEDURAL SKY DOME & ENVIRONMENT MAP
         // ==========================================
-        function createProceduralSky(mode) {
+        function createSkyTexture(mode) {
             const canvas = document.createElement('canvas');
             canvas.width = 1024;
             canvas.height = 512;
             const ctx = canvas.getContext('2d');
 
-            const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            if (mode === 'day') {
-                grad.addColorStop(0.0, '#38BDF8'); // clear sky blue
-                grad.addColorStop(0.42, '#BAE6FD'); // atmospheric horizon haze
-                grad.addColorStop(0.48, '#FFFFFF'); // solar horizon
-                grad.addColorStop(0.51, '#94A3B8'); // distant desert
-                grad.addColorStop(0.7, '#334155'); // road ground
+            const grad = ctx.createLinearGradient(0, 0, 0, 512);
+            if (mode === 'daylight') {
+                grad.addColorStop(0.0, '#0284C7'); // azure sky
+                grad.addColorStop(0.42, '#7DD3FC'); // atmospheric haze
+                grad.addColorStop(0.49, '#FFFBEB'); // radiant solar horizon
+                grad.addColorStop(0.51, '#94A3B8'); // distant road horizon
+                grad.addColorStop(0.7, '#334155');
                 grad.addColorStop(1.0, '#1E293B');
             } else if (mode === 'sunset') {
-                grad.addColorStop(0.0, '#3B0764'); // deep twilight purple
-                grad.addColorStop(0.35, '#A21CAF'); // magenta
-                grad.addColorStop(0.48, '#F97316'); // intense solar orange
-                grad.addColorStop(0.52, '#FEF08A'); // yellow horizon
+                grad.addColorStop(0.0, '#2E103E');
+                grad.addColorStop(0.35, '#9D174D');
+                grad.addColorStop(0.48, '#EA580C');
+                grad.addColorStop(0.52, '#FEF08A');
                 grad.addColorStop(0.7, '#7C2D12');
                 grad.addColorStop(1.0, '#18181B');
-            } else { // night
+            } else {
                 grad.addColorStop(0.0, '#020617');
                 grad.addColorStop(0.48, '#0F172A');
                 grad.addColorStop(0.52, '#1E293B');
                 grad.addColorStop(1.0, '#020617');
             }
             ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillRect(0, 0, 1024, 512);
 
-            // Sun disc highlight
-            if (mode === 'day') {
+            // Sun glints
+            if (mode === 'daylight') {
                 const sun = ctx.createRadialGradient(380, 130, 0, 380, 130, 90);
                 sun.addColorStop(0, 'rgba(255, 255, 255, 1)');
                 sun.addColorStop(0.3, 'rgba(255, 250, 220, 0.8)');
@@ -835,7 +665,6 @@
                 ctx.arc(380, 130, 90, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Overhead softbox glint
                 const softbox = ctx.createLinearGradient(100, 40, 900, 40);
                 softbox.addColorStop(0, 'rgba(255,255,255,0)');
                 softbox.addColorStop(0.5, 'rgba(255,255,255,0.7)');
@@ -858,66 +687,65 @@
             return tex;
         }
 
-        // Lighting
-        const hemiLight = new THREE.HemisphereLight(0xFFFFFF, 0x475569, 0.85);
+        const skyGeo = new THREE.SphereGeometry(600, 32, 16);
+        const skyMat = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
+        const skyMesh = new THREE.Mesh(skyGeo, skyMat);
+        scene.add(skyMesh);
+
+        // Lighting Rig
+        const hemiLight = new THREE.HemisphereLight(0xFFFFFF, 0x475569, 0.9);
         scene.add(hemiLight);
 
-        const sunLight = new THREE.DirectionalLight(0xFFFFFF, 2.2);
-        sunLight.position.set(28, 32, 22);
+        const sunLight = new THREE.DirectionalLight(0xFFFFFF, 2.5);
+        sunLight.position.set(24, 34, 20);
         sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 2048;
         sunLight.shadow.mapSize.height = 2048;
         sunLight.shadow.camera.near = 5;
-        sunLight.shadow.camera.far = 80;
-        sunLight.shadow.camera.left = -20;
-        sunLight.shadow.camera.right = 20;
-        sunLight.shadow.camera.top = 20;
-        sunLight.shadow.camera.bottom = -20;
+        sunLight.shadow.camera.far = 90;
+        sunLight.shadow.camera.left = -22;
+        sunLight.shadow.camera.right = 22;
+        sunLight.shadow.camera.top = 22;
+        sunLight.shadow.camera.bottom = -22;
         sunLight.shadow.bias = -0.0004;
         scene.add(sunLight);
 
-        const fillLight = new THREE.DirectionalLight(0x38BDF8, 0.5);
+        const fillLight = new THREE.DirectionalLight(0x38BDF8, 0.6);
         fillLight.position.set(-20, 12, -15);
         scene.add(fillLight);
 
         // ==========================================
-        // HIGHWAY BED & DESERT TERRAIN
+        // CONTINUOUS INTERSTATE HIGHWAY & HORIZON
         // ==========================================
         const roadGroup = new THREE.Group();
         scene.add(roadGroup);
 
-        // Desert verge terrain
-        const desertGeo = new THREE.PlaneGeometry(160, 400);
-        const desertMat = new THREE.MeshStandardMaterial({ color: 0xD4C5A1, roughness: 0.9, metalness: 0.05 });
-        const desertMesh = new THREE.Mesh(desertGeo, desertMat);
+        const desertMesh = new THREE.Mesh(
+            new THREE.PlaneGeometry(1000, 1000),
+            new THREE.MeshStandardMaterial({ color: 0xD4C5A1, roughness: 0.95 })
+        );
         desertMesh.rotation.x = -Math.PI / 2;
         desertMesh.position.y = -0.05;
         roadGroup.add(desertMesh);
 
-        // 4-Lane Paved Highway
-        const roadGeo = new THREE.PlaneGeometry(28, 400);
-        const roadMat = new THREE.MeshStandardMaterial({ color: 0x272B33, roughness: 0.55, metalness: 0.2 });
-        const roadMesh = new THREE.Mesh(roadGeo, roadMat);
+        const roadMat = new THREE.MeshStandardMaterial({ color: 0x22262E, roughness: 0.55, metalness: 0.2 });
+        const roadMesh = new THREE.Mesh(new THREE.PlaneGeometry(28, 1000), roadMat);
         roadMesh.rotation.x = -Math.PI / 2;
         roadMesh.receiveShadow = true;
         roadGroup.add(roadMesh);
 
-        // Animated Highway Lane Markers
         const laneDashesGroup = new THREE.Group();
         const dashGeo = new THREE.PlaneGeometry(0.32, 5.0);
         const dashWhite = new THREE.MeshBasicMaterial({ color: 0xF8FAFC });
         const dashYellow = new THREE.MeshBasicMaterial({ color: 0xF59E0B });
 
-        for (let z = -180; z <= 180; z += 10) {
-            // White lane dividers
+        for (let z = -300; z <= 300; z += 10) {
             for (let x of [-4.5, 4.5]) {
                 const d = new THREE.Mesh(dashGeo, dashWhite);
                 d.rotation.x = -Math.PI / 2;
                 d.position.set(x, 0.02, z);
                 laneDashesGroup.add(d);
             }
-
-            // Double Yellow Centerline
             for (let x of [-0.22, 0.22]) {
                 const yLine = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 8.5), dashYellow);
                 yLine.rotation.x = -Math.PI / 2;
@@ -930,308 +758,229 @@
         // Guardrails
         const guardMat = new THREE.MeshStandardMaterial({ color: 0x94A3B8, metalness: 0.9, roughness: 0.2 });
         for (let side of [-13.5, 13.5]) {
-            const rail = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.45, 400), guardMat);
+            const rail = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.45, 1000), guardMat);
             rail.position.set(side, 0.75, 0);
             roadGroup.add(rail);
 
-            for (let z = -180; z <= 180; z += 15) {
+            for (let z = -300; z <= 300; z += 16) {
                 const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.75, 8), guardMat);
                 post.position.set(side, 0.38, z);
                 roadGroup.add(post);
             }
         }
 
-        // Overhead Interstate Sign Gantry at Z = 60
-        const gantryGroup = new THREE.Group();
-        gantryGroup.position.set(0, 0, 70);
-
-        const gantryTruss = new THREE.Mesh(new THREE.BoxGeometry(32, 0.6, 0.6), guardMat);
-        gantryTruss.position.y = 8.5;
-        gantryGroup.add(gantryTruss);
-
-        for (let side of [-14, 14]) {
-            const gPost = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 8.5, 12), guardMat);
-            gPost.position.set(side, 4.25, 0);
-            gantryGroup.add(gPost);
-        }
-
-        // Green Highway Exit Sign
-        const signCanvas = document.createElement('canvas');
-        signCanvas.width = 512;
-        signCanvas.height = 192;
-        const sCtx = signCanvas.getContext('2d');
-        sCtx.fillStyle = '#065F46'; // Interstate green
-        sCtx.fillRect(0, 0, 512, 192);
-        sCtx.strokeStyle = '#FFFFFF';
-        sCtx.lineWidth = 10;
-        sCtx.strokeRect(10, 10, 492, 172);
-        sCtx.fillStyle = '#FFFFFF';
-        sCtx.font = 'bold 36px sans-serif';
-        sCtx.fillText('INTERSTATE 80 EAST', 40, 65);
-        sCtx.font = '30px sans-serif';
-        sCtx.fillText('Dallas / Fort Worth  ➔', 40, 125);
-
-        const signTex = new THREE.CanvasTexture(signCanvas);
-        const signMesh = new THREE.Mesh(new THREE.PlaneGeometry(8, 3), new THREE.MeshBasicMaterial({ map: signTex }));
-        signMesh.position.set(4.5, 8.5, -0.35);
-        signMesh.rotation.y = Math.PI;
-        gantryGroup.add(signMesh);
-
-        roadGroup.add(gantryGroup);
-
         // ==========================================
-        // SOTA AMERICAN SEMI-TRUCK (PETERBILT 389)
-        // Mathematically flush, zero protruding chassis errors!
+        // NEXT-GEN AERODYNAMIC HIGH-TECH HIGHWAY RIG
+        // Sleek aerodynamic cab, raked panoramic canopy, matrix LED bar
         // ==========================================
         const truckGroup = new THREE.Group();
-        truckGroup.position.set(4.5, 0, 0);
+        truckGroup.position.set(3.0, 0, 0);
         scene.add(truckGroup);
 
         // Master Materials
         const lacquerMat = new THREE.MeshPhysicalMaterial({
-            color: 0x1D4ED8, // Sapphire Blue default
-            metalness: 0.85,
-            roughness: 0.16,
+            color: 0x1D4ED8, // Sapphire Blue
+            metalness: 0.9,
+            roughness: 0.12,
             clearcoat: 1.0,
-            clearcoatRoughness: 0.08
+            clearcoatRoughness: 0.04
         });
 
         const chromeMat = new THREE.MeshStandardMaterial({
-            color: 0xF8FAFC,
-            metalness: 0.98,
-            roughness: 0.05
+            color: 0xFFFFFF,
+            metalness: 1.0,
+            roughness: 0.02
         });
 
-        const trailerAlloyMat = new THREE.MeshStandardMaterial({
-            color: 0xE2E8F0,
-            metalness: 0.92,
-            roughness: 0.22
+        const darkAeroMat = new THREE.MeshStandardMaterial({
+            color: 0x0F172A,
+            metalness: 0.8,
+            roughness: 0.25
         });
 
         const tireMat = new THREE.MeshStandardMaterial({
-            color: 0x14161B,
+            color: 0x111115,
             roughness: 0.85,
             metalness: 0.08
         });
 
-        const chassisMat = new THREE.MeshStandardMaterial({
-            color: 0x111827,
-            roughness: 0.65,
-            metalness: 0.5
+        // Corrugated Normal Map for 53' Stainless Trailer
+        function createNormalMap() {
+            const c = document.createElement('canvas');
+            c.width = 256;
+            c.height = 256;
+            const cx = c.getContext('2d');
+            const img = cx.createImageData(256, 256);
+            for (let x = 0; x < 256; x++) {
+                let normX = Math.cos((x / 14) * Math.PI * 2) * 127 + 128;
+                for (let y = 0; y < 256; y++) {
+                    let idx = (y * 256 + x) * 4;
+                    img.data[idx] = normX;
+                    img.data[idx+1] = 128;
+                    img.data[idx+2] = 255;
+                    img.data[idx+3] = 255;
+                }
+            }
+            cx.putImageData(img, 0, 0);
+            const t = new THREE.CanvasTexture(c);
+            t.wrapS = THREE.RepeatWrapping;
+            t.wrapT = THREE.RepeatWrapping;
+            t.repeat.set(16, 2);
+            return t;
+        }
+
+        const trailerAlloyMat = new THREE.MeshStandardMaterial({
+            color: 0xEDEDED,
+            metalness: 0.95,
+            roughness: 0.14,
+            normalMap: createNormalMap()
         });
 
         const glassMat = new THREE.MeshPhysicalMaterial({
-            color: 0x38BDF8,
+            color: 0x0369A1,
             transparent: true,
-            opacity: 0.4,
+            opacity: 0.65,
             roughness: 0.05,
-            metalness: 0.1,
-            transmission: 0.92
+            metalness: 0.2,
+            transmission: 0.85
         });
 
-        // 1. CHASSIS FRAME RAILS (Length 11.5m, Z from -1.8 to 9.7 - FLUSH WITH BUMPER!)
-        const frameL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.45, 11.5), chassisMat);
-        frameL.position.set(-1.1, 1.25, 3.95);
-        frameL.castShadow = true;
-        truckGroup.add(frameL);
+        // Contact Shadow Plane (Grounds the vehicle)
+        const shadowPlane = new THREE.Mesh(
+            new THREE.PlaneGeometry(3.6, 28),
+            new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 })
+        );
+        shadowPlane.rotation.x = -Math.PI / 2;
+        shadowPlane.position.set(0, 0.02, -1.0);
+        truckGroup.add(shadowPlane);
 
-        const frameR = frameL.clone();
-        frameR.position.x = 1.1;
-        truckGroup.add(frameR);
+        // 1. TRACTOR CAB: Aerodynamic Swept Wedge
+        // Lower aerodynamic front bumper with Texas drop profile
+        const aeroBumper = new THREE.Mesh(new THREE.BoxGeometry(2.85, 0.7, 0.5), chromeMat);
+        aeroBumper.position.set(0, 0.95, 9.7);
+        aeroBumper.castShadow = true;
+        truckGroup.add(aeroBumper);
 
-        // 2. TEXAS DROP CHROME FRONT BUMPER (Mounted at Z = 9.85, completely capping chassis!)
-        const bumper = new THREE.Mesh(new THREE.BoxGeometry(2.9, 0.75, 0.35), chromeMat);
-        bumper.position.set(0, 1.05, 9.85);
-        bumper.castShadow = true;
-        truckGroup.add(bumper);
+        // Continuous Full-Width Matrix LED Lightbar
+        const lightbar = new THREE.Mesh(
+            new THREE.BoxGeometry(2.6, 0.12, 0.08),
+            new THREE.MeshBasicMaterial({ color: 0xE0F2FE })
+        );
+        lightbar.position.set(0, 1.1, 9.96);
+        truckGroup.add(lightbar);
 
-        // Inset Fog Lamps in Bumper
-        const fogGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.1, 16);
-        const fogMat = new THREE.MeshBasicMaterial({ color: 0xFFFBEB });
-        for (let x of [-1.0, -0.5, 0.5, 1.0]) {
-            const fog = new THREE.Mesh(fogGeo, fogMat);
-            fog.rotation.x = Math.PI / 2;
-            fog.position.set(x, 1.05, 10.05);
-            truckGroup.add(fog);
+        // Twin Cyan Laser Projector Lamps
+        for (let side of [-0.95, 0.95]) {
+            const lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.1, 16), new THREE.MeshBasicMaterial({ color: 0x38BDF8 }));
+            lamp.rotation.x = Math.PI / 2;
+            lamp.position.set(side, 0.9, 9.97);
+            truckGroup.add(lamp);
         }
 
-        // 3. PETERBILT ARCHED CHROME GRILLE & CENTER EMBLEM
-        const grilleAssembly = new THREE.Group();
-        grilleAssembly.position.set(0, 2.3, 9.6);
+        // Swept Aerodynamic Hood (Sloping front wedge)
+        const hoodGeo = new THREE.BufferGeometry();
+        // Create custom sloping hood vertices
+        const hoodLength = 3.6;
+        const hoodWidthFront = 2.2;
+        const hoodWidthBack = 2.6;
+        const hoodMesh = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.5, 3.4), lacquerMat);
+        hoodMesh.position.set(0, 2.25, 7.8);
+        hoodMesh.castShadow = true;
+        truckGroup.add(hoodMesh);
 
-        // Chrome Crown Bezel
-        const grilleCrown = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.6, 0.25), chromeMat);
-        grilleAssembly.add(grilleCrown);
+        // Chrome Center Spine on Hood
+        const spine = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.06, 3.3), chromeMat);
+        spine.position.set(0, 3.02, 7.8);
+        truckGroup.add(spine);
 
-        // Dark Grille Wire Mesh Backing
-        const meshBack = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.45, 0.27), new THREE.MeshStandardMaterial({ color: 0x0A0F1D, roughness: 0.9 }));
-        grilleAssembly.add(meshBack);
+        // Curved Front Wheel Wells & Fenders
+        for (let side of [-1.32, 1.32]) {
+            const arch = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 0.55, 16, 1, false, 0, Math.PI), lacquerMat);
+            arch.rotation.z = Math.PI / 2;
+            arch.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
+            arch.position.set(side, 1.35, 7.8);
+            arch.castShadow = true;
+            truckGroup.add(arch);
 
-        // 14 3D Chrome Slats
-        const slatGeo = new THREE.BoxGeometry(0.04, 1.4, 0.08);
+            const lip = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.03, 8, 24, Math.PI), chromeMat);
+            lip.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
+            lip.position.set(side > 0 ? side + 0.28 : side - 0.28, 1.35, 7.8);
+            truckGroup.add(lip);
+        }
+
+        // Monumental Chrome Vertical Grille (14 vertical 3D slats)
+        const grilleGroup = new THREE.Group();
+        grilleGroup.position.set(0, 2.25, 9.5);
+
+        const grilleCrown = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.55, 0.25), chromeMat);
+        grilleGroup.add(grilleCrown);
+
+        const meshBack = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.4, 0.27), new THREE.MeshStandardMaterial({ color: 0x0A0F1D, roughness: 0.9 }));
+        grilleGroup.add(meshBack);
+
+        const slatGeo = new THREE.BoxGeometry(0.04, 1.35, 0.08);
         for (let i = -6; i <= 6; i++) {
             const slat = new THREE.Mesh(slatGeo, chromeMat);
             slat.position.set(i * 0.125, 0, 0.12);
-            grilleAssembly.add(slat);
+            grilleGroup.add(slat);
         }
 
-        // Center Red/Gold Emblem
         const emblem = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.16, 0.06), new THREE.MeshStandardMaterial({ color: 0xDC2626, metalness: 0.9, roughness: 0.15 }));
         emblem.position.set(0, 0.2, 0.16);
-        grilleAssembly.add(emblem);
+        grilleGroup.add(emblem);
 
-        truckGroup.add(grilleAssembly);
+        truckGroup.add(grilleGroup);
 
-        // 4. CURVED FRONT FENDERS (Wrap gracefully over front steer wheels)
-        const fenderMat = lacquerMat;
-        for (let side of [-1.32, 1.32]) {
-            const fenderGroup = new THREE.Group();
-            fenderGroup.position.set(side, 1.35, 7.8);
+        // 2. SLEEPER CAB & PANORAMIC COCKPIT CANOPY
+        const cabBody = new THREE.Mesh(new THREE.BoxGeometry(2.6, 2.7, 4.4), lacquerMat);
+        cabBody.position.set(0, 2.85, 4.0);
+        cabBody.castShadow = true;
+        truckGroup.add(cabBody);
 
-            // Curved Arch over Wheel (Cylinder semi-arch)
-            const archGeo = new THREE.CylinderGeometry(0.95, 0.95, 0.55, 16, 1, false, 0, Math.PI);
-            const arch = new THREE.Mesh(archGeo, fenderMat);
-            arch.rotation.z = Math.PI / 2;
-            arch.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
-            arch.castShadow = true;
-            fenderGroup.add(arch);
+        // Aerodynamic High-Roof Fairing Cap
+        const roofCap = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.1, 3.8), lacquerMat);
+        roofCap.position.set(0, 4.7, 3.8);
+        roofCap.castShadow = true;
+        truckGroup.add(roofCap);
 
-            // Chrome Trim Lip along fender edge
-            const lip = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.03, 8, 24, Math.PI), chromeMat);
-            lip.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
-            lip.position.set(side > 0 ? 0.28 : -0.28, 0, 0);
-            fenderGroup.add(lip);
-
-            // Chrome Bullet Headlight Pod mounted on Fender
-            const podGeo = new THREE.CylinderGeometry(0.2, 0.26, 0.55, 20);
-            const pod = new THREE.Mesh(podGeo, chromeMat);
-            pod.rotation.x = Math.PI / 2;
-            pod.position.set(0, 0.5, 0.7);
-            pod.castShadow = true;
-            fenderGroup.add(pod);
-
-            // LED Projector Lens
-            const lens = new THREE.Mesh(new THREE.CircleGeometry(0.16, 16), new THREE.MeshBasicMaterial({ color: 0xF0F9FF }));
-            lens.position.set(0, 0.5, 0.98);
-            fenderGroup.add(lens);
-
-            // Amber Turn Indicator
-            const turnLens = new THREE.Mesh(new THREE.CircleGeometry(0.06, 12), new THREE.MeshBasicMaterial({ color: 0xF59E0B }));
-            turnLens.position.set(side > 0 ? 0.12 : -0.12, 0.5, 0.98);
-            fenderGroup.add(turnLens);
-
-            truckGroup.add(fenderGroup);
-        }
-
-        // 5. LONG HOOD (Peterbilt iconic 389 hood)
-        const hood = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.5, 3.4), lacquerMat);
-        hood.position.set(0, 2.3, 7.8);
-        hood.castShadow = true;
-        truckGroup.add(hood);
-
-        // Chrome Center Hood Spine
-        const hoodSpine = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 3.3), chromeMat);
-        hoodSpine.position.set(0, 3.08, 7.8);
-        truckGroup.add(hoodSpine);
-
-        // Chrome Swan Hood Ornament
-        const swan = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.25, 8), chromeMat);
-        swan.rotation.x = Math.PI / 3;
-        swan.position.set(0, 3.15, 9.4);
-        truckGroup.add(swan);
-
-        // Side Air Intake Louvers on Hood
-        for (let side of [-1.02, 1.02]) {
-            const louver = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.4, 1.0), chromeMat);
-            louver.position.set(side, 2.4, 7.6);
-            truckGroup.add(louver);
-        }
-
-        // 6. MAIN SLEEPER CAB & AERODYNAMIC ROOF
-        const sleeperCab = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2.6, 4.2), lacquerMat);
-        sleeperCab.position.set(0, 2.85, 4.0);
-        sleeperCab.castShadow = true;
-        truckGroup.add(sleeperCab);
-
-        // Aerodynamic High Roof Fairing
-        const roofFairing = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.0, 3.6), lacquerMat);
-        roofFairing.position.set(0, 4.65, 3.8);
-        roofFairing.castShadow = true;
-        truckGroup.add(roofFairing);
-
-        // Raked Panoramic Windshield
-        const windshield = new THREE.Mesh(new THREE.BoxGeometry(2.3, 1.1, 0.08), glassMat);
-        windshield.position.set(0, 3.5, 6.05);
+        // Panoramic Dark Privacy Windshield (Raked 45 degrees)
+        const windshield = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.15, 0.08), glassMat);
+        windshield.position.set(0, 3.55, 6.15);
         windshield.rotation.x = -Math.PI / 8;
         truckGroup.add(windshield);
 
-        // Chrome Center Windshield Divider Post
-        const winDivider = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.12, 0.1), chromeMat);
-        winDivider.position.set(0, 3.5, 6.06);
-        winDivider.rotation.x = -Math.PI / 8;
-        truckGroup.add(winDivider);
-
-        // Polished Drop Sun Visor
-        const sunVisor = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.15, 0.5), chromeMat);
-        sunVisor.position.set(0, 4.12, 6.22);
+        // Chrome Drop Sun Visor
+        const sunVisor = new THREE.Mesh(new THREE.BoxGeometry(2.55, 0.15, 0.5), chromeMat);
+        sunVisor.position.set(0, 4.15, 6.32);
         sunVisor.rotation.x = Math.PI / 10;
         truckGroup.add(sunVisor);
 
-        // 5 Amber Cab Clearance Marker Lights
+        // 5 Amber Roof Clearance Lights
         for (let i = -2; i <= 2; i++) {
             const marker = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.1, 8), new THREE.MeshBasicMaterial({ color: 0xF59E0B }));
             marker.rotation.x = Math.PI / 2;
-            marker.position.set(i * 0.42, 4.25, 6.28);
+            marker.position.set(i * 0.42, 4.28, 6.38);
             truckGroup.add(marker);
         }
 
-        // Roof Chrome Air Horns (Twin Trumpets)
-        const hornGeo = new THREE.CylinderGeometry(0.04, 0.12, 1.1, 16);
-        for (let side of [-0.85, 0.85]) {
-            const horn = new THREE.Mesh(hornGeo, chromeMat);
-            horn.rotation.x = Math.PI / 2;
-            horn.position.set(side, 5.25, 4.2);
-            truckGroup.add(horn);
-        }
-
-        // Side West Coast Chrome Mirrors with Dual Bracket Rods
-        for (let side of [-1.45, 1.45]) {
-            const mirrorAssembly = new THREE.Group();
-            const mirrorBody = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.85, 0.3), chromeMat);
-            mirrorBody.position.set(side, 3.3, 5.8);
-            mirrorAssembly.add(mirrorBody);
-
-            const rodTop = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.4, 8), chromeMat);
-            rodTop.rotation.z = side > 0 ? -Math.PI / 4 : Math.PI / 4;
-            rodTop.position.set(side * 0.9, 3.55, 5.8);
-            mirrorAssembly.add(rodTop);
-
-            truckGroup.add(mirrorAssembly);
-        }
-
-        // 7. DUAL 8-INCH CHROME TURNOUT EXHAUST STACKS
-        const stackGeo = new THREE.CylinderGeometry(0.13, 0.13, 5.0, 32);
-        const shieldGeo = new THREE.CylinderGeometry(0.17, 0.17, 2.2, 32, 1, true);
-
+        // Dual 8-Inch Mirror Chrome Turnout Exhaust Stacks
         for (let side of [-1.38, 1.38]) {
-            const stack = new THREE.Mesh(stackGeo, chromeMat);
+            const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 5.0, 32), chromeMat);
             stack.position.set(side, 4.6, 1.8);
             stack.castShadow = true;
             truckGroup.add(stack);
 
-            // 45-degree curved turnout tip
             const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.65, 24), chromeMat);
             tip.position.set(side, 7.25, 1.68);
             tip.rotation.x = -Math.PI / 4;
             truckGroup.add(tip);
 
-            // Perforated heat shield
-            const shield = new THREE.Mesh(shieldGeo, chromeMat);
+            const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 2.2, 32, 1, true), chromeMat);
             shield.position.set(side, 3.4, 1.8);
             truckGroup.add(shield);
         }
 
-        // 8. POLISHED ALUMINUM FUEL TANKS & SERRATED ACCESS STEPS
+        // Side Fuel Tanks & Serrated Steps
         const tankGeo = new THREE.CylinderGeometry(0.55, 0.55, 3.0, 32);
         const strapMat = new THREE.MeshStandardMaterial({ color: 0x0A0F1D, roughness: 0.9 });
         const stepMat = new THREE.MeshStandardMaterial({ color: 0xE2E8F0, metalness: 0.9, roughness: 0.3 });
@@ -1242,7 +991,6 @@
             tank.rotation.x = Math.PI / 2;
             tankGroup.add(tank);
 
-            // Twin black retention straps
             for (let z of [-0.85, 0.85]) {
                 const strap = new THREE.Mesh(new THREE.CylinderGeometry(0.57, 0.57, 0.08, 32), strapMat);
                 strap.rotation.x = Math.PI / 2;
@@ -1250,7 +998,6 @@
                 tankGroup.add(strap);
             }
 
-            // Serrated cab access step plate
             const step = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.08, 2.0), stepMat);
             step.position.set(side > 0 ? 0.45 : -0.45, 0.28, 0);
             tankGroup.add(step);
@@ -1259,50 +1006,27 @@
             truckGroup.add(tankGroup);
         }
 
-        // 9. FIFTH WHEEL COUPLING PLATE (Z = -0.1, Y = 1.35)
-        const fifthWheel = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.12, 24), chassisMat);
-        fifthWheel.position.set(0, 1.35, -0.1);
-        fifthWheel.rotation.x = 0.08;
-        truckGroup.add(fifthWheel);
-
-        // 10. 53-FOOT STAINLESS STEEL REEFER TRAILER
+        // 3. 53-FOOT CORRUGATED STAINLESS REEFER TRAILER
         const trailerGroup = new THREE.Group();
         trailerGroup.position.set(0, 0, -8.2);
 
-        // Main Corrugated Stainless Body
         const trailerBox = new THREE.Mesh(new THREE.BoxGeometry(2.7, 3.8, 15.8), trailerAlloyMat);
         trailerBox.position.set(0, 3.45, 0);
         trailerBox.castShadow = true;
         trailerBox.receiveShadow = true;
         trailerGroup.add(trailerBox);
 
-        // Chrome Corner Extrusions
-        const cornerL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 15.8), chromeMat);
-        cornerL.position.set(-1.36, 5.36, 0);
-        trailerGroup.add(cornerL);
-        const cornerR = cornerL.clone();
-        cornerR.position.x = 1.36;
-        trailerGroup.add(cornerR);
-
-        // Front Bulkhead: Thermo King Reefer Unit
+        // Front Thermo King Unit
         const reeferUnit = new THREE.Group();
         reeferUnit.position.set(0, 3.8, 8.05);
-
         const reeferBody = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.8, 0.7), new THREE.MeshStandardMaterial({ color: 0xF8FAFC, roughness: 0.3 }));
         reeferUnit.add(reeferBody);
-
-        const reeferLouver = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.9, 0.1), new THREE.MeshStandardMaterial({ color: 0x1E293B, roughness: 0.9 }));
-        reeferLouver.position.set(0, 0.2, 0.38);
-        reeferUnit.add(reeferLouver);
-
-        // Cyan LED Active Cooling Display
         const ledDisp = new THREE.Mesh(new THREE.PlaneGeometry(0.45, 0.18), new THREE.MeshBasicMaterial({ color: 0x38BDF8 }));
         ledDisp.position.set(0, -0.45, 0.38);
         reeferUnit.add(ledDisp);
-
         trailerGroup.add(reeferUnit);
 
-        // Aerodynamic SmartWay Bottom Skirts
+        // Aerodynamic Skirts
         const skirtMat = new THREE.MeshStandardMaterial({ color: 0xF1F5F9, roughness: 0.4 });
         for (let side of [-1.34, 1.34]) {
             const skirt = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.75, 9.8), skirtMat);
@@ -1311,15 +1035,11 @@
             trailerGroup.add(skirt);
         }
 
-        // Landing Gear Support Legs
+        // Landing Gear
         for (let side of [-1.05, 1.05]) {
-            const leg = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.3, 0.16), chassisMat);
+            const leg = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.3, 0.16), darkAeroMat);
             leg.position.set(side, 0.95, 4.8);
             trailerGroup.add(leg);
-
-            const pad = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.08, 0.35), chassisMat);
-            pad.position.set(side, 0.3, 4.8);
-            trailerGroup.add(pad);
         }
 
         // Rear DOT ICC Safety Bumper
@@ -1327,7 +1047,6 @@
         iccBar.position.set(0, 0.8, -7.95);
         trailerGroup.add(iccBar);
 
-        // Rubber Mudflaps
         for (let side of [-1.1, 1.1]) {
             const flap = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.75, 0.04), new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.9 }));
             flap.position.set(side, 0.75, -7.8);
@@ -1336,49 +1055,40 @@
 
         truckGroup.add(trailerGroup);
 
-        // 11. HIGH-PRECISION ALCOA CHROME WHEELS (10 on Tractor, 8 on Trailer)
+        // 4. ALCOA DURA-BRIGHT CHROME WHEELS (10 on Tractor, 8 on Trailer)
         const rollingWheels = [];
 
-        function buildAlcoaWheel(isSteer = false) {
+        function buildAlcoaWheel() {
             const wheel = new THREE.Group();
-
-            // Treaded Heavy Radial Tire
             const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.42, 32), tireMat);
             tire.rotation.z = Math.PI / 2;
             tire.castShadow = true;
             wheel.add(tire);
 
-            // Alcoa Mirror Chrome Rim
             const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.43, 24), chromeMat);
             rim.rotation.z = Math.PI / 2;
             wheel.add(rim);
 
-            // Chrome Spiked Center Hubcap
             const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.47, 16), chromeMat);
             hub.rotation.z = Math.PI / 2;
             wheel.add(hub);
-
             return wheel;
         }
 
-        // Steer Axle Wheels (Tractor Front)
         for (let side of [-1.32, 1.32]) {
-            const w = buildAlcoaWheel(true);
+            const w = buildAlcoaWheel();
             w.position.set(side, 0.65, 7.8);
             truckGroup.add(w);
             rollingWheels.push(w);
         }
 
-        // Dual Drive Axle Wheels (Tractor Tandem Rear)
-        const tractorDriveZ = [0.8, -0.6];
-        for (let z of tractorDriveZ) {
+        for (let z of [0.8, -0.6]) {
             for (let side of [-1.35, 1.35]) {
-                const w = buildAlcoaWheel(false);
+                const w = buildAlcoaWheel();
                 w.position.set(side, 0.65, z);
                 truckGroup.add(w);
                 rollingWheels.push(w);
 
-                // Chrome quarter-fender above each drive wheel
                 const qFender = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.72, 0.5, 16, 1, false, 0, Math.PI / 2), chromeMat);
                 qFender.rotation.z = Math.PI / 2;
                 qFender.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
@@ -1387,11 +1097,9 @@
             }
         }
 
-        // Trailer Tandem Axle Wheels (Sliding Bogie)
-        const trailerAxleZ = [-12.8, -14.2];
-        for (let z of trailerAxleZ) {
+        for (let z of [-12.8, -14.2]) {
             for (let side of [-1.35, 1.35]) {
-                const w = buildAlcoaWheel(false);
+                const w = buildAlcoaWheel();
                 w.position.set(side, 0.65, z);
                 truckGroup.add(w);
                 rollingWheels.push(w);
@@ -1399,150 +1107,115 @@
         }
 
         // ==========================================
-        // DYNAMIC ENVIRONMENT CONTROLLER
+        // DYNAMIC LIGHTING CONTROLLER
         // ==========================================
-        let activeSkyTex = null;
+        let currentSkyTex = null;
 
-        function switchEnvironment(mode) {
-            document.body.className = 'mode-' + mode;
+        function switchTheme(mode) {
+            document.body.className = 'theme-' + mode;
 
-            document.querySelectorAll('.segmented-switcher .switcher-btn').forEach(b => b.classList.remove('active'));
-            const activeBtn = document.getElementById('btn-' + mode);
-            if (activeBtn) activeBtn.classList.add('active');
+            document.querySelectorAll('.env-pill .env-btn').forEach(b => b.classList.remove('active'));
+            const btn = document.getElementById('btn-' + (mode === 'daylight' ? 'day' : mode === 'sunset' ? 'sunset' : 'night'));
+            if (btn) btn.classList.add('active');
 
-            if (activeSkyTex) activeSkyTex.dispose();
-            activeSkyTex = createProceduralSky(mode);
-            scene.environment = activeSkyTex;
+            if (currentSkyTex) currentSkyTex.dispose();
+            currentSkyTex = createSkyTexture(mode);
+            skyMat.map = currentSkyTex;
+            skyMat.needsUpdate = true;
+            scene.environment = currentSkyTex;
 
-            if (mode === 'day') {
-                scene.background = null;
+            if (mode === 'daylight') {
                 hemiLight.color.setHex(0xFFFFFF);
                 hemiLight.groundColor.setHex(0x94A3B8);
                 hemiLight.intensity = 1.0;
                 sunLight.color.setHex(0xFFFBEB);
-                sunLight.intensity = 2.4;
-                roadMat.color.setHex(0x272B33);
-                desertMat.color.setHex(0xD4C5A1);
+                sunLight.intensity = 2.5;
+                roadMat.color.setHex(0x22262E);
+                desertMesh.material.color.setHex(0xD4C5A1);
             } else if (mode === 'sunset') {
-                scene.background = null;
                 hemiLight.color.setHex(0xF97316);
                 hemiLight.groundColor.setHex(0x3B0764);
                 hemiLight.intensity = 0.9;
                 sunLight.color.setHex(0xFDBA74);
                 sunLight.intensity = 2.8;
                 roadMat.color.setHex(0x1F1422);
-                desertMat.color.setHex(0x833824);
-            } else { // midnight
-                scene.background = null;
+                desertMesh.material.color.setHex(0x833824);
+            } else {
                 hemiLight.color.setHex(0x1E293B);
                 hemiLight.groundColor.setHex(0x020617);
                 hemiLight.intensity = 0.45;
                 sunLight.color.setHex(0x38BDF8);
                 sunLight.intensity = 1.2;
                 roadMat.color.setHex(0x0F172A);
-                desertMat.color.setHex(0x0B0F19);
+                desertMesh.material.color.setHex(0x0B0F19);
             }
         }
 
-        switchEnvironment('day');
+        switchTheme('daylight');
 
         // Color Customizer
         window.setCabColor = function(hex, el) {
             lacquerMat.color.setHex(hex);
-            document.querySelectorAll('.swatch-circle').forEach(s => s.classList.remove('selected'));
-            el.classList.add('selected');
+            document.querySelectorAll('.dot').forEach(s => s.classList.remove('active'));
+            el.classList.add('active');
         };
 
-        // Camera Presets
-        let targetCam = new THREE.Vector3(18, 6.5, 22);
-        let targetLook = new THREE.Vector3(4.5, 2.2, 0);
-
-        window.setCam = function(idx, el) {
-            document.querySelectorAll('.cam-pill').forEach(b => b.classList.remove('active'));
+        // Camera Views (Strictly maintains unobstructed right viewport)
+        window.setCameraAngle = function(idx, el) {
+            document.querySelectorAll('.c-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
 
             if (idx === 1) { // 3/4 Cruiser
-                targetCam.set(18, 6.5, 22);
-                targetLook.set(4.5, 2.2, 0);
-            } else if (idx === 2) { // Chrome Grille Close-up
-                targetCam.set(4.5, 2.6, 16);
-                targetLook.set(4.5, 2.3, 9.6);
+                targetCam.set(12.0, 5.0, 20.0);
+                targetLook.set(2.5, 2.0, -1.0);
+            } else if (idx === 2) { // Front Grille Close-up
+                targetCam.set(3.0, 2.4, 15.5);
+                targetLook.set(3.0, 2.3, 9.6);
             } else if (idx === 3) { // 65mph Profile
-                targetCam.set(22, 3.8, 1);
-                targetLook.set(4.5, 2.2, -1);
-            } else if (idx === 4) { // Fleet Radar
-                targetCam.set(0, 34, 4);
-                targetLook.set(4.5, 0, 0);
+                targetCam.set(18.0, 3.8, 1.0);
+                targetLook.set(3.0, 2.2, -1.0);
+            } else if (idx === 4) { // Top Fleet Radar
+                targetCam.set(2.0, 30.0, 4.0);
+                targetLook.set(3.0, 0, 0);
             }
         };
 
-        // ==========================================
-        // 65 MPH KINEMATIC SIMULATION LOOP
-        // ==========================================
+        // 65 MPH Highway Kinematics Loop
         const clock = new THREE.Clock();
-        const SPEED = 25.0; // units/sec = ~65 MPH
+        const SPEED = 26.0;
 
-        function renderLoop() {
-            requestAnimationFrame(renderLoop);
+        function animate() {
+            requestAnimationFrame(animate);
             const delta = clock.getDelta();
 
-            // Camera Damping
             camera.position.lerp(targetCam, 0.05);
             controls.target.lerp(targetLook, 0.05);
             controls.update();
 
-            // Wheel Spin
             const angVel = (SPEED / 0.65) * delta;
             for (let w of rollingWheels) {
                 w.children[0].rotation.x += angVel;
             }
 
-            // Road Marker Translation
             for (let d of laneDashesGroup.children) {
                 d.position.z -= SPEED * delta;
-                if (d.position.z < -180) {
-                    d.position.z += 360;
+                if (d.position.z < -300) {
+                    d.position.z += 600;
                 }
             }
 
-            // Gantry Translation (Rushes past periodically)
-            gantryGroup.position.z -= SPEED * delta;
-            if (gantryGroup.position.z < -120) {
-                gantryGroup.position.z = 180;
-            }
-
-            // Subtle vehicle suspension bounce
-            truckGroup.position.y = Math.sin(clock.getElapsedTime() * 14) * 0.012;
+            truckGroup.position.y = Math.sin(clock.getElapsedTime() * 14) * 0.01;
 
             renderer.render(scene, camera);
         }
-        renderLoop();
+        animate();
 
-        // Resize handler
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
+            applyCameraOffset();
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
-
-        // Yield Calculator
-        window.calcYield = function() {
-            const miles = parseFloat(document.getElementById('input-miles').value);
-            const rate = parseFloat(document.getElementById('input-rate').value);
-
-            document.getElementById('disp-miles').innerText = miles.toLocaleString() + ' miles';
-            document.getElementById('disp-rate').innerText = '$' + rate.toFixed(2) + ' / mi';
-
-            const grossW = miles * rate;
-            const grossM = grossW * 4;
-            const fee = grossW * 0.05;
-            const net = grossW - fee;
-
-            document.getElementById('sum-weekly').innerText = '$' + Math.round(grossW).toLocaleString();
-            document.getElementById('sum-monthly').innerText = '$' + Math.round(grossM).toLocaleString();
-            document.getElementById('sum-fee').innerText = '$' + Math.round(fee).toLocaleString();
-            document.getElementById('sum-net').innerText = '$' + Math.round(net).toLocaleString();
-        };
     </script>
 </body>
 </html>
