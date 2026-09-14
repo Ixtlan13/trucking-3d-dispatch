@@ -1200,6 +1200,12 @@
     </div>
 
     <script>
+        // PRELOAD ALL 3 ASSETS IN MEMORY FOR 0MS INSTANTANEOUS SWITCHING
+        ['assets/truck_hero.webp', 'assets/truck_exploded.webp', 'assets/truck_cruise.webp'].forEach(src => {
+            const pre = new Image();
+            pre.src = src;
+        });
+
         // SPATIAL 3D MOUSE PARALLAX (Active Theory Standard)
         const stage = document.getElementById('machine-stage');
         let mouseX = 0, mouseY = 0;
