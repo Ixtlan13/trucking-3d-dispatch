@@ -3,46 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AETHER // NEXT-GEN AUTONOMOUS FREIGHT PLATFORM</title>
+    <title>AETHER // NEXT-GEN AUTONOMOUS FREIGHT FLEET</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --glass-card: rgba(255, 255, 255, 0.94);
-            --glass-border: rgba(15, 23, 42, 0.1);
-            --text-heading: #0F172A;
-            --text-body: #334155;
+            --bg-void: #030712;
+            --glass-bg: rgba(9, 14, 28, 0.88);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --cyan-accent: #00E5FF;
+            --cyan-glow: rgba(0, 229, 255, 0.45);
+            --amber-accent: #FFB800;
+            --emerald-accent: #10B981;
+            --crimson-accent: #EF4444;
+            --text-main: #F8FAFC;
+            --text-sub: #94A3B8;
             --text-dim: #64748B;
-            --brand-primary: #1D4ED8;
-            --brand-cyan: #0284C7;
-            --brand-emerald: #059669;
-            --brand-amber: #D97706;
-            --shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(15, 23, 42, 0.05);
-        }
-
-        body.theme-sunset {
-            --glass-card: rgba(36, 16, 46, 0.92);
-            --glass-border: rgba(249, 115, 22, 0.25);
-            --text-heading: #FFF7ED;
-            --text-body: #FED7AA;
-            --text-dim: #FB923C;
-            --brand-primary: #EA580C;
-            --brand-cyan: #F97316;
-            --shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.6);
-        }
-
-        body.theme-midnight {
-            --glass-card: rgba(11, 18, 33, 0.92);
-            --glass-border: rgba(56, 189, 248, 0.2);
-            --text-heading: #F8FAFC;
-            --text-body: #94A3B8;
-            --text-dim: #64748B;
-            --brand-primary: #2563EB;
-            --brand-cyan: #38BDF8;
-            --shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.7);
         }
 
         * {
@@ -57,39 +34,241 @@
             height: 100vh;
             overflow: hidden;
             font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-            color: var(--text-heading);
-            background: #020617;
+            background: var(--bg-void);
+            color: var(--text-main);
             user-select: none;
         }
 
-        #webgl-stage {
+        /* 1. ATMOSPHERIC LIGHTING & SCANLINES */
+        .ambient-softbox {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1200px;
+            height: 600px;
+            background: radial-gradient(ellipse at center, rgba(0, 229, 255, 0.08) 0%, transparent 70%);
+            pointer-events: none;
             z-index: 1;
         }
 
-        .hud-layer {
+        .ambient-floor {
             position: absolute;
-            top: 0;
+            bottom: 0;
             left: 0;
             width: 100vw;
-            height: 100vh;
+            height: 35vh;
+            background: radial-gradient(ellipse at bottom, rgba(15, 23, 42, 0.9) 0%, transparent 80%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .scanlines {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* 2. CENTRAL 3D SHOWCASE VIEWPORT */
+        .showcase-viewport {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 4vw;
+            z-index: 5;
+            perspective: 1400px;
+            cursor: crosshair;
+        }
+
+        .machine-stage {
+            position: relative;
+            width: 72vw;
+            max-width: 1180px;
+            height: 76vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+            transition: transform 0.15s ease-out;
+        }
+
+        .machine-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 25px 45px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 35px rgba(0, 229, 255, 0.15));
+            pointer-events: none;
+            user-select: none;
+            transition: opacity 0.4s ease, filter 0.4s ease, transform 0.4s ease;
+        }
+
+        /* 3. INTERACTIVE CAD HOTSPOTS (SONAR RETICLES) */
+        .hotspot-wrap {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            cursor: pointer;
+        }
+
+        .sonar-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--cyan-accent);
+            opacity: 0.35;
+            animation: sonar-pulse 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes sonar-pulse {
+            70%, 100% {
+                transform: translate(-50%, -50%) scale(2.4);
+                opacity: 0;
+            }
+        }
+
+        .sonar-target {
+            position: relative;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(3, 7, 18, 0.92);
+            border: 1.5px solid var(--cyan-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px var(--cyan-glow);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .hotspot-wrap:hover .sonar-target {
+            transform: scale(1.35);
+            background: var(--cyan-accent);
+            box-shadow: 0 0 25px var(--cyan-glow);
+        }
+
+        .sonar-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #FFF;
+            transition: background 0.2s;
+        }
+
+        .hotspot-wrap:hover .sonar-dot {
+            background: #000;
+        }
+
+        /* Micro Crosshair lines on reticle */
+        .cross-h {
+            position: absolute;
+            top: 50%;
+            left: -4px;
+            right: -4px;
+            height: 1px;
+            background: var(--cyan-accent);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .cross-v {
+            position: absolute;
+            left: 50%;
+            top: -4px;
+            bottom: -4px;
+            width: 1px;
+            background: var(--cyan-accent);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* Expandable Telemetry Card on Hover */
+        .hotspot-card {
+            position: absolute;
+            left: 28px;
+            top: 50%;
+            transform: translateY(-50%) translateX(-8px);
+            background: rgba(7, 12, 26, 0.96);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--cyan-accent);
+            border-radius: 12px;
+            padding: 10px 14px;
+            width: 250px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.85), 0 0 25px var(--cyan-glow);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .hotspot-wrap:hover .hotspot-card {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        .card-header-mini {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 4px;
+            margin-bottom: 6px;
+        }
+
+        .card-tag {
+            font-size: 8px;
+            font-weight: 800;
+            color: var(--cyan-accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .card-status {
+            font-size: 8px;
+            color: var(--emerald-accent);
+            font-weight: 700;
+        }
+
+        .card-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: #FFF;
+            margin-bottom: 3px;
+        }
+
+        .card-spec {
+            font-size: 9px;
+            color: var(--text-sub);
+            line-height: 1.4;
+        }
+
+        /* 4. MASTER HUD LAYER */
+        .hud-layer {
+            position: absolute;
+            inset: 0;
             z-index: 10;
             pointer-events: none;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 20px 30px 16px;
+            padding: 16px 28px 12px;
         }
 
         .interactive {
             pointer-events: auto;
         }
 
-        /* Top Nav */
+        /* Header */
         header {
             display: flex;
             justify-content: space-between;
@@ -97,1125 +276,1121 @@
             width: 100%;
         }
 
-        .brand-pill {
-            background: var(--glass-card);
-            border: 1px solid var(--glass-border);
-            border-radius: 999px;
-            padding: 6px 18px 6px 8px;
+        .brand-badge {
             display: flex;
             align-items: center;
-            gap: 10px;
-            backdrop-filter: blur(24px);
-            box-shadow: var(--shadow);
+            gap: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            padding: 8px 16px;
+            border-radius: 9999px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
         }
 
         .brand-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #1D4ED8, #0284C7);
-            color: #fff;
-            display: grid;
-            place-items: center;
-            font-weight: 900;
-            font-size: 15px;
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #00E5FF, #2563EB);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px var(--cyan-glow);
         }
 
-        .brand-name {
-            font-size: 13px;
-            font-weight: 900;
-            letter-spacing: 1px;
+        .brand-icon svg {
+            width: 15px;
+            height: 15px;
+            fill: #000;
+        }
+
+        .brand-text h1 {
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-family: 'JetBrains Mono', monospace;
+            color: #FFF;
+        }
+
+        .brand-text span {
+            font-size: 9px;
+            color: var(--cyan-accent);
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.12em;
+        }
+
+        /* Central Mode Selector */
+        .mode-capsule {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            padding: 4px 6px;
+            border-radius: 9999px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-sub);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
             text-transform: uppercase;
         }
 
+        .mode-btn:hover {
+            color: #FFF;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .mode-btn.active {
+            background: #FFF;
+            color: #000;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .mode-btn.active-xray {
+            background: var(--cyan-accent);
+            color: #000;
+            box-shadow: 0 0 25px var(--cyan-glow);
+        }
+
+        .mode-btn.active-cruise {
+            background: var(--amber-accent);
+            color: #000;
+            box-shadow: 0 0 25px rgba(255, 184, 0, 0.5);
+        }
+
+        /* Top Right Controls */
         .top-right {
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
-        .env-pill {
-            background: var(--glass-card);
-            border: 1px solid var(--glass-border);
-            border-radius: 999px;
-            padding: 4px;
+        .audio-btn {
             display: flex;
-            gap: 2px;
-            backdrop-filter: blur(24px);
-            box-shadow: var(--shadow);
-        }
-
-        .env-btn {
-            border: none;
-            background: transparent;
-            color: var(--text-dim);
+            align-items: center;
+            gap: 8px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            padding: 8px 14px;
+            border-radius: 9999px;
+            color: var(--text-sub);
+            font-family: 'JetBrains Mono', monospace;
             font-size: 11px;
             font-weight: 700;
-            padding: 6px 14px;
-            border-radius: 999px;
             cursor: pointer;
             transition: all 0.2s ease;
+        }
+
+        .audio-btn.active {
+            color: var(--cyan-accent);
+            border-color: var(--cyan-accent);
+            box-shadow: 0 0 15px var(--cyan-glow);
+        }
+
+        .sound-wave {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 12px;
+        }
+
+        .sound-wave span {
+            width: 2px;
+            background: currentColor;
+            border-radius: 1px;
+            height: 4px;
+        }
+
+        .audio-btn.active .sound-wave span:nth-child(1) { animation: wave 0.8s ease-in-out infinite alternate; }
+        .audio-btn.active .sound-wave span:nth-child(2) { animation: wave 0.8s ease-in-out infinite 0.2s alternate; }
+        .audio-btn.active .sound-wave span:nth-child(3) { animation: wave 0.8s ease-in-out infinite 0.4s alternate; }
+
+        @keyframes wave {
+            0% { height: 3px; }
+            100% { height: 12px; }
+        }
+
+        .btn-cta-top {
+            background: linear-gradient(135deg, #00E5FF 0%, #0284C7 100%);
+            color: #000;
+            font-weight: 800;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 9px 18px;
+            border-radius: 9999px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 0 25px var(--cyan-glow);
+            transition: all 0.25s ease;
             font-family: 'JetBrains Mono', monospace;
         }
 
-        .env-btn.active {
-            background: var(--brand-primary);
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(29, 78, 216, 0.35);
+        .btn-cta-top:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.15);
+            box-shadow: 0 0 35px var(--cyan-glow);
         }
 
-        .btn-cta {
-            background: linear-gradient(135deg, #1D4ED8, #0284C7);
-            color: #fff;
-            border: none;
-            padding: 9px 18px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 800;
-            cursor: pointer;
-            box-shadow: 0 4px 14px rgba(29, 78, 216, 0.35);
-            transition: transform 0.2s ease;
-        }
-
-        .btn-cta:hover {
-            transform: translateY(-2px);
-        }
-
-        /* Left Dock (Strictly constrained to 350px width, zero overlap) */
-        .workspace-row {
+        /* 5. ULTRA-RESTRAINED FLIGHT DECK CARD (320px - ZERO COLLISION!) */
+        .hud-center {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             width: 100%;
             flex: 1;
+            padding: 10px 0;
+            min-height: 0;
         }
 
-        .dock-card {
-            background: var(--glass-card);
+        .flight-deck {
+            width: 320px;
+            max-width: 320px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 26px 24px;
-            width: 350px;
-            backdrop-filter: blur(24px);
-            box-shadow: var(--shadow);
-            margin-left: 6px;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
         }
 
-        .status-chip {
+        .status-pill {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: rgba(5, 150, 105, 0.12);
-            border: 1px solid rgba(5, 150, 105, 0.3);
-            color: var(--brand-emerald);
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.35);
             padding: 4px 10px;
-            border-radius: 999px;
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 0.8px;
+            border-radius: 9999px;
             font-family: 'JetBrains Mono', monospace;
-            margin-bottom: 12px;
+            font-size: 9px;
+            font-weight: 700;
+            color: #34D399;
+            width: fit-content;
+            letter-spacing: 0.06em;
         }
 
-        .chip-dot {
+        .status-dot {
             width: 6px;
             height: 6px;
+            background: #34D399;
             border-radius: 50%;
-            background: var(--brand-emerald);
-            box-shadow: 0 0 8px var(--brand-emerald);
+            box-shadow: 0 0 8px #34D399;
+            animation: pulse-dot 2s infinite;
         }
 
-        .hero-title {
-            font-size: 28px;
-            font-weight: 900;
-            line-height: 1.1;
-            letter-spacing: -1px;
-            margin-bottom: 8px;
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
         }
 
-        .hero-title span {
-            background: linear-gradient(135deg, var(--brand-primary), var(--brand-cyan));
+        .deck-h1 {
+            font-size: 24px;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            color: #FFF;
+        }
+
+        .deck-h1 span {
+            background: linear-gradient(135deg, #00E5FF 0%, #38BDF8 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .hero-text {
-            font-size: 12px;
-            line-height: 1.5;
-            color: var(--text-body);
-            margin-bottom: 16px;
-            font-weight: 500;
-        }
-
-        .kpi-row {
-            background: rgba(15, 23, 42, 0.04);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 8px 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        body.theme-sunset .kpi-row,
-        body.theme-midnight .kpi-row {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .kpi-val {
-            font-size: 17px;
-            font-weight: 900;
-            color: var(--brand-emerald);
-        }
-
-        .kpi-sub {
-            font-size: 9px;
-            color: var(--text-dim);
-            text-align: right;
-        }
-
-        .cta-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .btn-start {
-            flex: 1;
-            background: linear-gradient(135deg, #1D4ED8, #0284C7);
-            color: #fff;
-            border: none;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 800;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(29, 78, 216, 0.35);
-            text-align: center;
-        }
-
-        .btn-calc {
-            background: transparent;
-            border: 1px solid var(--glass-border);
-            color: var(--text-heading);
-            padding: 10px 12px;
-            border-radius: 10px;
+        .deck-p {
             font-size: 11px;
+            line-height: 1.5;
+            color: var(--text-sub);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 10px;
+        }
+
+        .stat-item .sub-lbl {
+            font-size: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .stat-item .main-val {
+            font-size: 16px;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            color: #FFF;
+            margin: 1px 0;
+        }
+
+        .stat-item .aux-val {
+            font-size: 8px;
+            color: var(--emerald-accent);
+            font-family: 'JetBrains Mono', monospace;
             font-weight: 700;
-            cursor: pointer;
         }
 
-        .card-footer {
-            border-top: 1px solid var(--glass-border);
-            padding-top: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .footer-line {
+        /* Color Finishes */
+        .finish-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
-        .footer-label {
+        .finish-row span {
             font-size: 9px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--text-dim);
             font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            letter-spacing: 0.06em;
         }
 
-        .color-dots {
+        .chips-finish {
             display: flex;
+            align-items: center;
             gap: 6px;
         }
 
-        .dot {
-            width: 18px;
-            height: 18px;
+        .dot-finish {
+            width: 17px;
+            height: 17px;
             border-radius: 50%;
-            border: 2px solid transparent;
+            border: 2px solid rgba(255, 255, 255, 0.2);
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
-        .dot.active {
-            border-color: #0F172A;
-            transform: scale(1.25);
-            box-shadow: 0 0 6px rgba(15, 23, 42, 0.4);
+        .dot-finish:hover {
+            transform: scale(1.2);
+            border-color: #FFF;
         }
 
-        body.theme-sunset .dot.active,
-        body.theme-midnight .dot.active {
-            border-color: #fff;
-            box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+        .dot-finish.active {
+            border-color: var(--cyan-accent);
+            box-shadow: 0 0 10px var(--cyan-glow);
+            transform: scale(1.15);
         }
 
-        .d-blue { background: #1D4ED8; }
-        .d-red { background: #DC2626; }
-        .d-silver { background: #E2E8F0; border: 1px solid #94A3B8; }
-        .d-black { background: #0B0F19; }
-
-        .cam-dock {
-            display: flex;
-            gap: 3px;
+        /* Perspectives */
+        .persp-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
         }
 
-        .c-btn {
-            background: rgba(15, 23, 42, 0.05);
-            border: 1px solid var(--glass-border);
-            color: var(--text-heading);
-            padding: 4px 7px;
-            border-radius: 5px;
+        .btn-persp {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 6px 2px;
+            font-family: 'JetBrains Mono', monospace;
             font-size: 9px;
             font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-sub);
+            text-align: center;
             cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        body.theme-sunset .c-btn,
-        body.theme-midnight .c-btn {
+        .btn-persp:hover {
+            color: #FFF;
+            border-color: rgba(255, 255, 255, 0.3);
             background: rgba(255, 255, 255, 0.08);
         }
 
-        .c-btn.active, .c-btn:hover {
-            background: var(--brand-primary);
-            color: #fff;
-            border-color: var(--brand-cyan);
+        .btn-persp.active {
+            background: var(--cyan-accent);
+            color: #000;
+            border-color: var(--cyan-accent);
+            box-shadow: 0 0 12px var(--cyan-glow);
         }
 
-        /* Right Floating Telemetry */
-        .telemetry-tag {
-            position: absolute;
-            right: 30px;
-            top: 75px;
-            background: var(--glass-card);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 8px 14px;
+        /* Action Buttons */
+        .deck-actions {
             display: flex;
-            align-items: center;
-            gap: 12px;
-            backdrop-filter: blur(24px);
-            box-shadow: var(--shadow);
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .tag-kpi {
-            font-size: 14px;
-            font-weight: 900;
-            color: var(--brand-emerald);
-        }
-
-        .tag-lbl {
-            font-size: 8px;
-            color: var(--text-dim);
-            text-transform: uppercase;
-        }
-
-        /* Bottom Running Marquee Line */
-        .bottom-ticker {
-            background: var(--glass-card);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 8px 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            backdrop-filter: blur(24px);
-            box-shadow: var(--shadow);
-            width: 100%;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10.5px;
-        }
-
-        .ticker-lane {
-            display: flex;
-            align-items: center;
+            flex-direction: column;
             gap: 6px;
         }
 
-        .lane-city {
+        .btn-main-deck {
+            background: #FFF;
+            color: #000;
             font-weight: 800;
-            color: var(--text-heading);
+            font-size: 11px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            transition: all 0.2s ease;
         }
 
-        .lane-rate {
-            font-weight: 800;
-            color: var(--brand-emerald);
+        .btn-main-deck:hover {
+            background: var(--cyan-accent);
+            box-shadow: 0 0 25px var(--cyan-glow);
+            transform: translateY(-1px);
         }
 
-        .lane-sep {
-            color: var(--glass-border);
+        .btn-sec-deck {
+            background: transparent;
+            color: var(--text-sub);
+            font-weight: 700;
+            font-size: 9px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .btn-sec-deck:hover {
+            color: #FFF;
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        /* Floating Telemetry Box (Top Right of machine) */
+        .tele-box-float {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            padding: 8px 16px;
+            border-radius: 9999px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+            font-family: 'JetBrains Mono', monospace;
+            align-self: flex-start;
+            margin-top: 10px;
+        }
+
+        .tele-chunk {
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+        }
+
+        .tele-chunk .num {
+            font-size: 15px;
+            font-weight: 800;
+            color: #FFF;
+        }
+
+        .tele-chunk .unit {
+            font-size: 9px;
+            color: var(--cyan-accent);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        /* 6. BOTTOM NON-OVERLAPPING SPOT TICKER */
+        footer {
+            width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 7px 16px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            position: relative;
+        }
+
+        .ticker-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            font-weight: 800;
+            color: var(--cyan-accent);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+            padding-right: 16px;
+            border-right: 1px solid rgba(255, 255, 255, 0.12);
+            flex-shrink: 0;
+            position: relative;
+            z-index: 10;
+            background: var(--glass-bg);
+        }
+
+        .ticker-scroller-mask {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            mask-image: linear-gradient(to right, transparent 0%, black 25px, black 95%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 25px, black 95%, transparent 100%);
+        }
+
+        .ticker-scroller {
+            display: flex;
+            gap: 30px;
+            white-space: nowrap;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--text-sub);
+            padding-left: 20px;
+            animation: ticker-anim 40s linear infinite;
+        }
+
+        .ticker-node {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ticker-node .lane { color: #FFF; font-weight: 700; }
+        .ticker-node .gross { color: var(--emerald-accent); font-weight: 800; }
+        .ticker-node .rpm { color: var(--cyan-accent); }
+
+        @keyframes ticker-anim {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* 7. YIELD CALCULATOR MODAL */
+        .modal-bg {
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.88);
+            backdrop-filter: blur(20px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-bg.active {
+            display: flex;
+        }
+
+        .calc-modal {
+            background: #0B1224;
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            width: 440px;
+            max-width: 90vw;
+            padding: 24px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px var(--cyan-glow);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .modal-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 12px;
+        }
+
+        .modal-head h2 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 800;
+            color: #FFF;
+            text-transform: uppercase;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .close-btn:hover { color: #FFF; }
+
+        .slide-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .slide-label {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--text-sub);
+        }
+
+        .slide-label span:last-child {
+            color: var(--cyan-accent);
+            font-weight: 800;
+        }
+
+        input[type=range] {
+            accent-color: var(--cyan-accent);
+            width: 100%;
+        }
+
+        .calc-box-res {
+            background: rgba(0, 229, 255, 0.08);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .res-col-title { font-size: 9px; color: var(--text-sub); text-transform: uppercase; }
+        .res-col-val { font-size: 20px; font-weight: 900; color: #FFF; margin-top: 2px; }
+
+        /* Responsive on small laptops */
+        @media (max-width: 1200px) {
+            .flight-deck {
+                width: 290px;
+                padding: 16px;
+                gap: 12px;
+            }
+            .deck-h1 {
+                font-size: 20px;
+            }
+            .machine-stage {
+                width: 68vw;
+            }
         }
     </style>
 </head>
-<body class="theme-daylight">
+<body>
 
-    <!-- 3D WebGL Canvas Layer -->
-    <div id="webgl-stage"></div>
+    <!-- 1. Ambient Lighting & Overlays -->
+    <div class="ambient-softbox"></div>
+    <div class="ambient-floor"></div>
+    <div class="scanlines"></div>
 
-    <!-- UI Overlay Layer -->
-    <div class="hud-layer">
-        
-        <!-- Header -->
-        <header class="interactive">
-            <div class="brand-pill">
-                <div class="brand-icon">⚡</div>
-                <div class="brand-name">AETHER // DISPATCH</div>
+    <!-- 2. Central 3D Interactive Showcase Viewport -->
+    <div class="showcase-viewport" id="viewport" onmousemove="handleShowcaseMouseMove(event)" onmouseleave="handleShowcaseMouseLeave()">
+        <div class="machine-stage" id="machine-stage">
+            
+            <!-- Master Machine Visual Asset -->
+            <img 
+                id="main-truck-img" 
+                src="assets/truck_hero.webp" 
+                alt="AETHER Class 8 Semi Truck" 
+                class="machine-img"
+            >
+
+            <!-- 5 Interactive Sonar Telemetry Hotspots -->
+            <!-- 01 // LIDAR SENSOR SUITE -->
+            <div class="hotspot-wrap" style="top: 24%; left: 34%;" onclick="focusHotspot('lidar')">
+                <div class="sonar-ring"></div>
+                <div class="sonar-target">
+                    <div class="cross-h"></div>
+                    <div class="cross-v"></div>
+                    <div class="sonar-dot"></div>
+                </div>
+                <div class="hotspot-card">
+                    <div class="card-header-mini">
+                        <span class="card-tag">RADAR // LIDAR</span>
+                        <span class="card-status">360° ACTIVE</span>
+                    </div>
+                    <div class="card-title">OPTICAL SENSOR FUSION</div>
+                    <div class="card-spec">Sub-millimeter highway telemetry, adaptive cruise, and automated collision avoidance.</div>
+                </div>
             </div>
 
-            <div class="top-right">
-                <div class="env-pill">
-                    <button class="env-btn active" id="btn-day" onclick="switchTheme('daylight')">☀️ DAYLIGHT</button>
-                    <button class="env-btn" id="btn-sunset" onclick="switchTheme('sunset')">🌅 SUNSET</button>
-                    <button class="env-btn" id="btn-night" onclick="switchTheme('midnight')">🌃 MIDNIGHT</button>
+            <!-- 02 // DETROIT DD15 ENGINE -->
+            <div class="hotspot-wrap" style="top: 58%; left: 24%;" onclick="focusHotspot('engine')">
+                <div class="sonar-ring"></div>
+                <div class="sonar-target">
+                    <div class="cross-h"></div>
+                    <div class="cross-v"></div>
+                    <div class="sonar-dot"></div>
                 </div>
+                <div class="hotspot-card">
+                    <div class="card-header-mini">
+                        <span class="card-tag">POWERTRAIN</span>
+                        <span class="card-status">505 HP // DD15</span>
+                    </div>
+                    <div class="card-title">DETROIT DD15 TURBO DIESEL</div>
+                    <div class="card-spec">1,850 lb-ft torque @ 975 RPM • DT12 automated manual transmission with smart coasting.</div>
+                </div>
+            </div>
 
-                <button class="btn-cta" onclick="alert('Carrier Dispatch: Direct line WhatsApp +972 53-246-4636 or dispatch@aether.io')">
-                    Onboard Fleet &rarr;
+            <!-- 03 // THERMO KING REEFER -->
+            <div class="hotspot-wrap" style="top: 28%; left: 67%;" onclick="focusHotspot('reefer')">
+                <div class="sonar-ring"></div>
+                <div class="sonar-target">
+                    <div class="cross-h"></div>
+                    <div class="cross-v"></div>
+                    <div class="sonar-dot"></div>
+                </div>
+                <div class="hotspot-card">
+                    <div class="card-header-mini">
+                        <span class="card-tag">CRYOGENIC CLIMATE</span>
+                        <span class="card-status">-10°F CRYOGENIC</span>
+                    </div>
+                    <div class="card-title">THERMO KING S-700 REEFER</div>
+                    <div class="card-spec">Multi-temp sub-zero microclimate telemetry certified for high-value pharma & reefer spot freight.</div>
+                </div>
+            </div>
+
+            <!-- 04 // TANDEM AXLE AIR SUSPENSION -->
+            <div class="hotspot-wrap" style="top: 72%; left: 74%;" onclick="focusHotspot('suspension')">
+                <div class="sonar-ring"></div>
+                <div class="sonar-target">
+                    <div class="cross-h"></div>
+                    <div class="cross-v"></div>
+                    <div class="sonar-dot"></div>
+                </div>
+                <div class="hotspot-card">
+                    <div class="card-header-mini">
+                        <span class="card-tag">CHASSIS & BOGIE</span>
+                        <span class="card-status">80,000 LBS GVWR</span>
+                    </div>
+                    <div class="card-title">TANDEM SLIDER SUSPENSION</div>
+                    <div class="card-spec">Air-ride bogie with dynamic axle load distribution and automated disc brake telemetry.</div>
+                </div>
+            </div>
+
+            <!-- 05 // SPOT INTELLIGENCE AGENT -->
+            <div class="hotspot-wrap" style="top: 46%; left: 47%;" onclick="focusHotspot('radar')">
+                <div class="sonar-ring"></div>
+                <div class="sonar-target">
+                    <div class="cross-h"></div>
+                    <div class="cross-v"></div>
+                    <div class="sonar-dot"></div>
+                </div>
+                <div class="hotspot-card">
+                    <div class="card-header-mini">
+                        <span class="card-tag">AI DISPATCH AGENT</span>
+                        <span class="card-status">$4.16 / MI TARGET</span>
+                    </div>
+                    <div class="card-title">DAT ONE SPOT ENGINE</div>
+                    <div class="card-spec">Autonomous rate negotiation, broker vetting, factoring sync, and zero deadhead routing.</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 3. Master HUD Layer -->
+    <div class="hud-layer">
+        
+        <!-- Top Nav Bar -->
+        <header class="interactive">
+            <div class="brand-badge">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </div>
+                <div class="brand-text">
+                    <h1>AETHER // DISPATCH</h1>
+                    <span>SOTA AUTONOMOUS FREIGHT FLEET</span>
+                </div>
+            </div>
+
+            <!-- Active Theory CAD Mode Switcher -->
+            <div class="mode-capsule">
+                <button class="mode-btn active" id="btn-mode-showroom" onclick="switchMode('showroom')">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                    01 // SHOWROOM
                 </button>
+                <button class="mode-btn" id="btn-mode-xray" onclick="switchMode('xray')">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    02 // CAD EXPLODED VIEW
+                </button>
+                <button class="mode-btn" id="btn-mode-cruise" onclick="switchMode('cruise')">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    03 // 65 MPH CRUISE
+                </button>
+            </div>
+
+            <!-- Top Right Bar -->
+            <div class="top-right">
+                <button class="audio-btn" id="audio-toggle" onclick="toggleAudio()">
+                    <div class="sound-wave">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <span id="audio-txt">AUDIO FX: OFF</span>
+                </button>
+                <button class="btn-cta-top" onclick="openYieldModal()">CALCULATE YIELD &rarr;</button>
             </div>
         </header>
 
-        <!-- Center: Left Dock ONLY -->
-        <div class="workspace-row">
-            <div class="dock-card interactive">
-                <div class="status-chip">
-                    <div class="chip-dot"></div>
+        <!-- Middle Row: Left Card + Floating Telemetry -->
+        <div class="hud-center">
+            
+            <!-- Left Flight Deck Card -->
+            <div class="flight-deck interactive">
+                <div class="status-pill">
+                    <span class="status-dot"></span>
                     <span>DAT ONE SPOT RADAR ACTIVE</span>
                 </div>
 
-                <h1 class="hero-title">
+                <div class="deck-h1">
                     We Find Loads.<br>
                     <span>You Keep Moving.</span>
-                </h1>
+                </div>
 
-                <p class="hero-text">
-                    Enterprise spot intelligence, aggressive broker negotiation, and zero-downtime dispatch architecture for high-performing carriers.
-                </p>
+                <div class="deck-p">
+                    Enterprise spot-rate intelligence, aggressive broker negotiation, and zero-downtime dispatch architecture for high-performing carriers.
+                </div>
 
-                <div class="kpi-row">
-                    <div>
-                        <div class="kpi-val">$10,080</div>
-                        <div style="font-size: 8px; color: var(--text-dim);">AVG. WEEKLY GROSS</div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="sub-lbl">AVG WEEKLY GROSS</div>
+                        <div class="main-val">$10,480</div>
+                        <div class="aux-val">+14.2% VS NAT. AVG</div>
                     </div>
-                    <div class="kpi-sub">
-                        <div style="color: var(--brand-primary); font-weight: 800;">5% FLAT FEE</div>
-                        <div>0% FORCED DISPATCH</div>
+                    <div class="stat-item">
+                        <div class="sub-lbl">DISPATCH FEE</div>
+                        <div class="main-val">5% FLAT</div>
+                        <div class="aux-val">ZERO FORCED LOADS</div>
                     </div>
                 </div>
 
-                <div class="cta-row">
-                    <button class="btn-start" onclick="alert('Connecting to Senior Dispatcher via WhatsApp / Email!')">
-                        Start Dispatching &rarr;
-                    </button>
-                    <button class="btn-calc" onclick="alert('Simulation: 2,800 miles @ $3.60/mi = $10,080 gross. Net take-home after 5% fee: $9,576/wk.')">
-                        Calculate Yield
-                    </button>
+                <!-- Cab Lacquer Color Switcher -->
+                <div class="finish-row">
+                    <span>CAB FINISH</span>
+                    <div class="chips-finish">
+                        <div class="dot-finish active" style="background: #0F172A;" onclick="setFinish('obsidian', this)" title="Obsidian Black"></div>
+                        <div class="dot-finish" style="background: #1D4ED8;" onclick="setFinish('sapphire', this)" title="Midnight Sapphire"></div>
+                        <div class="dot-finish" style="background: #DC2626;" onclick="setFinish('crimson', this)" title="SANY Crimson"></div>
+                        <div class="dot-finish" style="background: #E2E8F0;" onclick="setFinish('white', this)" title="Arctic White"></div>
+                        <div class="dot-finish" style="background: #475569;" onclick="setFinish('titanium', this)" title="Brushed Titanium"></div>
+                    </div>
                 </div>
 
-                <div class="card-footer">
-                    <div class="footer-line">
-                        <span class="footer-label">Cab Finish</span>
-                        <div class="color-dots">
-                            <div class="dot d-blue active" onclick="setCabColor(0x1D4ED8, this)"></div>
-                            <div class="dot d-red" onclick="setCabColor(0xDC2626, this)"></div>
-                            <div class="dot d-silver" onclick="setCabColor(0xE2E8F0, this)"></div>
-                            <div class="dot d-black" onclick="setCabColor(0x0B0F19, this)"></div>
-                        </div>
-                    </div>
+                <!-- Perspective Presets -->
+                <div class="finish-row">
+                    <span>PERSPECTIVE</span>
+                </div>
+                <div class="persp-grid">
+                    <div class="btn-persp active" onclick="setPerspective('hero', this)">[1] 3/4 Rig</div>
+                    <div class="btn-persp" onclick="setPerspective('grille', this)">[2] Grille</div>
+                    <div class="btn-persp" onclick="setPerspective('engine', this)">[3] Engine</div>
+                    <div class="btn-persp" onclick="setPerspective('full', this)">[4] Full 53'</div>
+                </div>
 
-                    <div class="footer-line">
-                        <span class="footer-label">Perspective</span>
-                        <div class="cam-dock">
-                            <button class="c-btn active" onclick="setCameraAngle(1, this)">[1] 3/4 Cruiser</button>
-                            <button class="c-btn" onclick="setCameraAngle(2, this)">[2] Grille</button>
-                            <button class="c-btn" onclick="setCameraAngle(3, this)">[3] 65mph</button>
-                            <button class="c-btn" onclick="setCameraAngle(4, this)">[4] Top</button>
-                        </div>
-                    </div>
+                <!-- Action CTAs -->
+                <div class="deck-actions">
+                    <button class="btn-main-deck" onclick="openOnboard()">START DISPATCHING &rarr;</button>
+                    <button class="btn-sec-deck" onclick="openYieldModal()">CALCULATE WEEKLY GROSS</button>
                 </div>
             </div>
+
+            <!-- Floating Telemetry Capsule on the Right -->
+            <div class="tele-box-float interactive">
+                <div class="tele-chunk">
+                    <span class="num" id="speed-indicator">65.0</span>
+                    <span class="unit">MPH CRUISE</span>
+                </div>
+                <div style="width: 1px; height: 14px; background: rgba(255,255,255,0.15);"></div>
+                <div class="tele-chunk">
+                    <span class="num">$4.16</span>
+                    <span class="unit">/ MI REEFER SPOT</span>
+                </div>
+                <div style="width: 1px; height: 14px; background: rgba(255,255,255,0.15);"></div>
+                <div class="tele-chunk">
+                    <span class="num" style="color: #34D399;">99.4%</span>
+                    <span class="unit">ON-TIME YIELD</span>
+                </div>
+            </div>
+
         </div>
 
-        <!-- Floating Telemetry Tag on Right -->
-        <div class="telemetry-tag interactive">
-            <div>
-                <div class="tag-kpi">65.0 MPH</div>
-                <div class="tag-lbl">Cruising Velocity</div>
+        <!-- 4. Bottom Non-Overlapping Live Spot Ticker -->
+        <footer class="interactive">
+            <div class="ticker-badge">
+                <span class="status-dot"></span>
+                <span>LIVE SPOT RADAR</span>
             </div>
-            <div style="border-left: 1px solid var(--glass-border); padding-left: 10px;">
-                <div class="tag-kpi" style="color: var(--brand-primary);">$4.16 / mi</div>
-                <div class="tag-lbl">Reefer National Spot</div>
-            </div>
-        </div>
-
-        <!-- Bottom Spot Rate Marquee Line -->
-        <footer class="bottom-ticker interactive">
-            <div class="ticker-lane">
-                <span style="color: var(--brand-emerald);">●</span>
-                <span class="lane-city">CHICAGO, IL &rarr; DALLAS, TX</span>
-                <span class="lane-rate">$3,850 ($4.16/mi)</span>
-            </div>
-            <span class="lane-sep">|</span>
-            <div class="ticker-lane">
-                <span style="color: var(--brand-cyan);">●</span>
-                <span class="lane-city">ATLANTA, GA &rarr; PHILADELPHIA, PA</span>
-                <span class="lane-rate">$3,200 ($4.10/mi)</span>
-            </div>
-            <span class="lane-sep">|</span>
-            <div class="ticker-lane">
-                <span style="color: var(--brand-amber);">●</span>
-                <span class="lane-city">LOS ANGELES, CA &rarr; PHOENIX, AZ</span>
-                <span class="lane-rate">$1,850 ($5.00/mi)</span>
-            </div>
-            <span class="lane-sep">|</span>
-            <div class="ticker-lane">
-                <span style="color: var(--brand-emerald);">●</span>
-                <span class="lane-city">COLUMBUS, OH &rarr; CHARLOTTE, NC</span>
-                <span class="lane-rate">$2,450 ($5.21/mi)</span>
+            <div class="ticker-scroller-mask">
+                <div class="ticker-scroller">
+                    <span class="ticker-node"><span class="lane">CHI &rarr; DAL</span> <span class="gross">$3,850</span> <span class="rpm">($4.16/mi)</span></span>
+                    <span class="ticker-node"><span class="lane">ATL &rarr; PHL</span> <span class="gross">$3,200</span> <span class="rpm">($4.10/mi)</span></span>
+                    <span class="ticker-node"><span class="lane">LAX &rarr; PHX</span> <span class="gross">$1,850</span> <span class="rpm">($5.00/mi)</span></span>
+                    <span class="ticker-node"><span class="lane">CMH &rarr; CLT</span> <span class="gross">$2,450</span> <span class="rpm">($5.21/mi)</span></span>
+                    <span class="ticker-node"><span class="lane">MIA &rarr; ATL</span> <span class="gross">$2,900</span> <span class="rpm">($4.38/mi)</span></span>
+                    <span class="ticker-node"><span class="lane">SEA &rarr; SLC</span> <span class="gross">$3,400</span> <span class="rpm">($4.05/mi)</span></span>
+                    <span class="ticker-node"><span class="lane">CHI &rarr; DAL</span> <span class="gross">$3,850</span> <span class="rpm">($4.16/mi)</span></span>
+                    <span class="ticker-node"><span class="lane">ATL &rarr; PHL</span> <span class="gross">$3,200</span> <span class="rpm">($4.10/mi)</span></span>
+                    <span class="ticker-node"><span class="lane">LAX &rarr; PHX</span> <span class="gross">$1,850</span> <span class="rpm">($5.00/mi)</span></span>
+                </div>
             </div>
         </footer>
 
     </div>
 
-    <!-- ========================================== -->
-    <!-- HIGH-FIDELITY AERODYNAMIC THREE.JS ENGINE -->
-    <!-- ========================================== -->
+    <!-- 5. Interactive Yield Calculator Modal -->
+    <div class="modal-bg" id="calc-modal" onclick="closeModalBg(event)">
+        <div class="calc-modal">
+            <div class="modal-head">
+                <h2>WEEKLY GROSS REVENUE SIMULATOR</h2>
+                <button class="close-btn" onclick="closeYieldModal()">&times;</button>
+            </div>
+            <div class="slide-group">
+                <div class="slide-label">
+                    <span>WEEKLY LOADED MILES</span>
+                    <span id="miles-disp">2,600 MI</span>
+                </div>
+                <input type="range" id="input-miles" min="1500" max="4000" step="50" value="2600" oninput="calcYield()">
+            </div>
+            <div class="slide-group">
+                <div class="slide-label">
+                    <span>AVERAGE SPOT RATE PER MILE</span>
+                    <span id="rate-disp">$4.16 / MI</span>
+                </div>
+                <input type="range" id="input-rate" min="2.80" max="5.50" step="0.05" value="4.16" oninput="calcYield()">
+            </div>
+            <div class="slide-group">
+                <div class="slide-label">
+                    <span>EQUIPMENT SPECIFICATION</span>
+                    <span style="color: #34D399;">53' HIGH-CUBE REEFER (+18% PREMIUM)</span>
+                </div>
+            </div>
+            <div class="calc-box-res">
+                <div>
+                    <div class="res-col-title">PROJECTED WEEKLY GROSS</div>
+                    <div class="res-col-val" id="disp-gross">$10,816</div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="res-col-title">DISPATCH FEE (5%)</div>
+                    <div class="res-col-val" style="color: var(--cyan-accent);" id="disp-fee">$540</div>
+                </div>
+            </div>
+            <button class="btn-main-deck" onclick="openOnboard()">LOCK IN SPOT CAPACITY &rarr;</button>
+        </div>
+    </div>
+
     <script>
-        const canvasContainer = document.getElementById('webgl-stage');
-        const scene = new THREE.Scene();
+        // SPATIAL 3D MOUSE PARALLAX (Active Theory Standard)
+        const stage = document.getElementById('machine-stage');
+        let mouseX = 0, mouseY = 0;
+        let targetRotX = 0, targetRotY = 0;
+        let currentRotX = 0, currentRotY = 0;
 
-        // Camera configuration with viewOffset shifting truck to right 65% of viewport
-        const camera = new THREE.PerspectiveCamera(34, window.innerWidth / window.innerHeight, 0.1, 1500);
-        
-        function applyCameraOffset() {
-            const shiftX = window.innerWidth < 1400 ? -180 : -220;
-            camera.setViewOffset(window.innerWidth, window.innerHeight, shiftX, 0, window.innerWidth, window.innerHeight);
-        }
-        applyCameraOffset();
-
-        let targetCam = new THREE.Vector3(12.0, 5.0, 20.0);
-        let targetLook = new THREE.Vector3(2.5, 2.0, -1.0);
-        camera.position.copy(targetCam);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.18;
-        canvasContainer.appendChild(renderer.domElement);
-
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.maxPolarAngle = Math.PI / 2 - 0.02;
-        controls.minDistance = 6;
-        controls.maxDistance = 50;
-        controls.target.copy(targetLook);
-
-        // ==========================================
-        // PROCEDURAL SKY DOME & ENVIRONMENT MAP
-        // ==========================================
-        function createSkyTexture(mode) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 1024;
-            canvas.height = 512;
-            const ctx = canvas.getContext('2d');
-
-            const grad = ctx.createLinearGradient(0, 0, 0, 512);
-            if (mode === 'daylight') {
-                grad.addColorStop(0.0, '#0284C7'); // azure sky
-                grad.addColorStop(0.42, '#7DD3FC'); // atmospheric haze
-                grad.addColorStop(0.49, '#FFFBEB'); // radiant solar horizon
-                grad.addColorStop(0.51, '#94A3B8'); // distant road horizon
-                grad.addColorStop(0.7, '#334155');
-                grad.addColorStop(1.0, '#1E293B');
-            } else if (mode === 'sunset') {
-                grad.addColorStop(0.0, '#2E103E');
-                grad.addColorStop(0.35, '#9D174D');
-                grad.addColorStop(0.48, '#EA580C');
-                grad.addColorStop(0.52, '#FEF08A');
-                grad.addColorStop(0.7, '#7C2D12');
-                grad.addColorStop(1.0, '#18181B');
-            } else {
-                grad.addColorStop(0.0, '#020617');
-                grad.addColorStop(0.48, '#0F172A');
-                grad.addColorStop(0.52, '#1E293B');
-                grad.addColorStop(1.0, '#020617');
-            }
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, 1024, 512);
-
-            // Sun glints
-            if (mode === 'daylight') {
-                const sun = ctx.createRadialGradient(380, 130, 0, 380, 130, 90);
-                sun.addColorStop(0, 'rgba(255, 255, 255, 1)');
-                sun.addColorStop(0.3, 'rgba(255, 250, 220, 0.8)');
-                sun.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                ctx.fillStyle = sun;
-                ctx.beginPath();
-                ctx.arc(380, 130, 90, 0, Math.PI * 2);
-                ctx.fill();
-
-                const softbox = ctx.createLinearGradient(100, 40, 900, 40);
-                softbox.addColorStop(0, 'rgba(255,255,255,0)');
-                softbox.addColorStop(0.5, 'rgba(255,255,255,0.7)');
-                softbox.addColorStop(1, 'rgba(255,255,255,0)');
-                ctx.fillStyle = softbox;
-                ctx.fillRect(100, 30, 800, 30);
-            } else if (mode === 'sunset') {
-                const sun = ctx.createRadialGradient(512, 230, 0, 512, 230, 140);
-                sun.addColorStop(0, 'rgba(255, 245, 200, 1)');
-                sun.addColorStop(0.4, 'rgba(249, 115, 22, 0.8)');
-                sun.addColorStop(1, 'rgba(249, 115, 22, 0)');
-                ctx.fillStyle = sun;
-                ctx.beginPath();
-                ctx.arc(512, 230, 140, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            const tex = new THREE.CanvasTexture(canvas);
-            tex.mapping = THREE.EquirectangularReflectionMapping;
-            return tex;
+        function handleShowcaseMouseMove(e) {
+            const rect = document.getElementById('viewport').getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width - 0.5;
+            const y = (e.clientY - rect.top) / rect.height - 0.5;
+            targetRotX = -y * 12; // Max 12 deg tilt
+            targetRotY = x * 16;
         }
 
-        const skyGeo = new THREE.SphereGeometry(600, 32, 16);
-        const skyMat = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
-        const skyMesh = new THREE.Mesh(skyGeo, skyMat);
-        scene.add(skyMesh);
-
-        // Lighting Rig
-        const hemiLight = new THREE.HemisphereLight(0xFFFFFF, 0x475569, 0.9);
-        scene.add(hemiLight);
-
-        const sunLight = new THREE.DirectionalLight(0xFFFFFF, 2.5);
-        sunLight.position.set(24, 34, 20);
-        sunLight.castShadow = true;
-        sunLight.shadow.mapSize.width = 2048;
-        sunLight.shadow.mapSize.height = 2048;
-        sunLight.shadow.camera.near = 5;
-        sunLight.shadow.camera.far = 90;
-        sunLight.shadow.camera.left = -22;
-        sunLight.shadow.camera.right = 22;
-        sunLight.shadow.camera.top = 22;
-        sunLight.shadow.camera.bottom = -22;
-        sunLight.shadow.bias = -0.0004;
-        scene.add(sunLight);
-
-        const fillLight = new THREE.DirectionalLight(0x38BDF8, 0.6);
-        fillLight.position.set(-20, 12, -15);
-        scene.add(fillLight);
-
-        // ==========================================
-        // CONTINUOUS INTERSTATE HIGHWAY & HORIZON
-        // ==========================================
-        const roadGroup = new THREE.Group();
-        scene.add(roadGroup);
-
-        const desertMesh = new THREE.Mesh(
-            new THREE.PlaneGeometry(1000, 1000),
-            new THREE.MeshStandardMaterial({ color: 0xD4C5A1, roughness: 0.95 })
-        );
-        desertMesh.rotation.x = -Math.PI / 2;
-        desertMesh.position.y = -0.05;
-        roadGroup.add(desertMesh);
-
-        const roadMat = new THREE.MeshStandardMaterial({ color: 0x22262E, roughness: 0.55, metalness: 0.2 });
-        const roadMesh = new THREE.Mesh(new THREE.PlaneGeometry(28, 1000), roadMat);
-        roadMesh.rotation.x = -Math.PI / 2;
-        roadMesh.receiveShadow = true;
-        roadGroup.add(roadMesh);
-
-        const laneDashesGroup = new THREE.Group();
-        const dashGeo = new THREE.PlaneGeometry(0.32, 5.0);
-        const dashWhite = new THREE.MeshBasicMaterial({ color: 0xF8FAFC });
-        const dashYellow = new THREE.MeshBasicMaterial({ color: 0xF59E0B });
-
-        for (let z = -300; z <= 300; z += 10) {
-            for (let x of [-4.5, 4.5]) {
-                const d = new THREE.Mesh(dashGeo, dashWhite);
-                d.rotation.x = -Math.PI / 2;
-                d.position.set(x, 0.02, z);
-                laneDashesGroup.add(d);
-            }
-            for (let x of [-0.22, 0.22]) {
-                const yLine = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 8.5), dashYellow);
-                yLine.rotation.x = -Math.PI / 2;
-                yLine.position.set(x, 0.02, z);
-                laneDashesGroup.add(yLine);
-            }
-        }
-        roadGroup.add(laneDashesGroup);
-
-        // Guardrails
-        const guardMat = new THREE.MeshStandardMaterial({ color: 0x94A3B8, metalness: 0.9, roughness: 0.2 });
-        for (let side of [-13.5, 13.5]) {
-            const rail = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.45, 1000), guardMat);
-            rail.position.set(side, 0.75, 0);
-            roadGroup.add(rail);
-
-            for (let z = -300; z <= 300; z += 16) {
-                const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.75, 8), guardMat);
-                post.position.set(side, 0.38, z);
-                roadGroup.add(post);
-            }
+        function handleShowcaseMouseLeave() {
+            targetRotX = 0;
+            targetRotY = 0;
         }
 
-        // ==========================================
-        // NEXT-GEN AERODYNAMIC HIGH-TECH HIGHWAY RIG
-        // Sleek aerodynamic cab, raked panoramic canopy, matrix LED bar
-        // ==========================================
-        const truckGroup = new THREE.Group();
-        truckGroup.position.set(3.0, 0, 0);
-        scene.add(truckGroup);
+        function updateParallax() {
+            currentRotX += (targetRotX - currentRotX) * 0.08;
+            currentRotY += (targetRotY - currentRotY) * 0.08;
+            stage.style.transform = `rotateX(${currentRotX.toFixed(2)}deg) rotateY(${currentRotY.toFixed(2)}deg)`;
+            requestAnimationFrame(updateParallax);
+        }
+        updateParallax();
 
-        // Master Materials
-        const lacquerMat = new THREE.MeshPhysicalMaterial({
-            color: 0x1D4ED8, // Sapphire Blue
-            metalness: 0.9,
-            roughness: 0.12,
-            clearcoat: 1.0,
-            clearcoatRoughness: 0.04
-        });
+        // MODE SWITCHER (Showroom / CAD Exploded / 65mph Cruise)
+        const truckImg = document.getElementById('main-truck-img');
+        const hotspots = document.querySelectorAll('.hotspot-wrap');
 
-        const chromeMat = new THREE.MeshStandardMaterial({
-            color: 0xFFFFFF,
-            metalness: 1.0,
-            roughness: 0.02
-        });
+        function switchMode(mode) {
+            playHydraulicSound();
+            document.querySelectorAll('.mode-btn').forEach(b => b.className = 'mode-btn');
 
-        const darkAeroMat = new THREE.MeshStandardMaterial({
-            color: 0x0F172A,
-            metalness: 0.8,
-            roughness: 0.25
-        });
+            truckImg.style.opacity = '0';
+            truckImg.style.transform = 'scale(0.96)';
 
-        const tireMat = new THREE.MeshStandardMaterial({
-            color: 0x111115,
-            roughness: 0.85,
-            metalness: 0.08
-        });
-
-        // Corrugated Normal Map for 53' Stainless Trailer
-        function createNormalMap() {
-            const c = document.createElement('canvas');
-            c.width = 256;
-            c.height = 256;
-            const cx = c.getContext('2d');
-            const img = cx.createImageData(256, 256);
-            for (let x = 0; x < 256; x++) {
-                let normX = Math.cos((x / 14) * Math.PI * 2) * 127 + 128;
-                for (let y = 0; y < 256; y++) {
-                    let idx = (y * 256 + x) * 4;
-                    img.data[idx] = normX;
-                    img.data[idx+1] = 128;
-                    img.data[idx+2] = 255;
-                    img.data[idx+3] = 255;
+            setTimeout(() => {
+                if (mode === 'showroom') {
+                    document.getElementById('btn-mode-showroom').classList.add('active');
+                    truckImg.src = 'assets/truck_hero.webp';
+                    hotspots.forEach(h => h.style.display = 'block');
+                    document.getElementById('speed-indicator').innerText = '0.0';
+                } else if (mode === 'xray') {
+                    document.getElementById('btn-mode-xray').classList.add('active', 'active-xray');
+                    truckImg.src = 'assets/truck_exploded.webp';
+                    hotspots.forEach(h => h.style.display = 'none');
+                    document.getElementById('speed-indicator').innerText = 'CAD';
+                } else if (mode === 'cruise') {
+                    document.getElementById('btn-mode-cruise').classList.add('active', 'active-cruise');
+                    truckImg.src = 'assets/truck_cruise.webp';
+                    hotspots.forEach(h => h.style.display = 'none');
+                    document.getElementById('speed-indicator').innerText = '65.0';
                 }
-            }
-            cx.putImageData(img, 0, 0);
-            const t = new THREE.CanvasTexture(c);
-            t.wrapS = THREE.RepeatWrapping;
-            t.wrapT = THREE.RepeatWrapping;
-            t.repeat.set(16, 2);
-            return t;
+                truckImg.style.opacity = '1';
+                truckImg.style.transform = 'scale(1.0)';
+            }, 250);
         }
 
-        const trailerAlloyMat = new THREE.MeshStandardMaterial({
-            color: 0xEDEDED,
-            metalness: 0.95,
-            roughness: 0.14,
-            normalMap: createNormalMap()
-        });
-
-        const glassMat = new THREE.MeshPhysicalMaterial({
-            color: 0x0369A1,
-            transparent: true,
-            opacity: 0.65,
-            roughness: 0.05,
-            metalness: 0.2,
-            transmission: 0.85
-        });
-
-        // Contact Shadow Plane (Grounds the vehicle)
-        const shadowPlane = new THREE.Mesh(
-            new THREE.PlaneGeometry(3.6, 28),
-            new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 })
-        );
-        shadowPlane.rotation.x = -Math.PI / 2;
-        shadowPlane.position.set(0, 0.02, -1.0);
-        truckGroup.add(shadowPlane);
-
-        // 1. TRACTOR CAB: Aerodynamic Swept Wedge
-        // Lower aerodynamic front bumper with Texas drop profile
-        const aeroBumper = new THREE.Mesh(new THREE.BoxGeometry(2.85, 0.7, 0.5), chromeMat);
-        aeroBumper.position.set(0, 0.95, 9.7);
-        aeroBumper.castShadow = true;
-        truckGroup.add(aeroBumper);
-
-        // Continuous Full-Width Matrix LED Lightbar
-        const lightbar = new THREE.Mesh(
-            new THREE.BoxGeometry(2.6, 0.12, 0.08),
-            new THREE.MeshBasicMaterial({ color: 0xE0F2FE })
-        );
-        lightbar.position.set(0, 1.1, 9.96);
-        truckGroup.add(lightbar);
-
-        // Twin Cyan Laser Projector Lamps
-        for (let side of [-0.95, 0.95]) {
-            const lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.1, 16), new THREE.MeshBasicMaterial({ color: 0x38BDF8 }));
-            lamp.rotation.x = Math.PI / 2;
-            lamp.position.set(side, 0.9, 9.97);
-            truckGroup.add(lamp);
-        }
-
-        // Swept Aerodynamic Hood (Sloping front wedge)
-        const hoodGeo = new THREE.BufferGeometry();
-        // Create custom sloping hood vertices
-        const hoodLength = 3.6;
-        const hoodWidthFront = 2.2;
-        const hoodWidthBack = 2.6;
-        const hoodMesh = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.5, 3.4), lacquerMat);
-        hoodMesh.position.set(0, 2.25, 7.8);
-        hoodMesh.castShadow = true;
-        truckGroup.add(hoodMesh);
-
-        // Chrome Center Spine on Hood
-        const spine = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.06, 3.3), chromeMat);
-        spine.position.set(0, 3.02, 7.8);
-        truckGroup.add(spine);
-
-        // Curved Front Wheel Wells & Fenders
-        for (let side of [-1.32, 1.32]) {
-            const arch = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 0.55, 16, 1, false, 0, Math.PI), lacquerMat);
-            arch.rotation.z = Math.PI / 2;
-            arch.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
-            arch.position.set(side, 1.35, 7.8);
-            arch.castShadow = true;
-            truckGroup.add(arch);
-
-            const lip = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.03, 8, 24, Math.PI), chromeMat);
-            lip.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
-            lip.position.set(side > 0 ? side + 0.28 : side - 0.28, 1.35, 7.8);
-            truckGroup.add(lip);
-        }
-
-        // Monumental Chrome Vertical Grille (14 vertical 3D slats)
-        const grilleGroup = new THREE.Group();
-        grilleGroup.position.set(0, 2.25, 9.5);
-
-        const grilleCrown = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.55, 0.25), chromeMat);
-        grilleGroup.add(grilleCrown);
-
-        const meshBack = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.4, 0.27), new THREE.MeshStandardMaterial({ color: 0x0A0F1D, roughness: 0.9 }));
-        grilleGroup.add(meshBack);
-
-        const slatGeo = new THREE.BoxGeometry(0.04, 1.35, 0.08);
-        for (let i = -6; i <= 6; i++) {
-            const slat = new THREE.Mesh(slatGeo, chromeMat);
-            slat.position.set(i * 0.125, 0, 0.12);
-            grilleGroup.add(slat);
-        }
-
-        const emblem = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.16, 0.06), new THREE.MeshStandardMaterial({ color: 0xDC2626, metalness: 0.9, roughness: 0.15 }));
-        emblem.position.set(0, 0.2, 0.16);
-        grilleGroup.add(emblem);
-
-        truckGroup.add(grilleGroup);
-
-        // 2. SLEEPER CAB & PANORAMIC COCKPIT CANOPY
-        const cabBody = new THREE.Mesh(new THREE.BoxGeometry(2.6, 2.7, 4.4), lacquerMat);
-        cabBody.position.set(0, 2.85, 4.0);
-        cabBody.castShadow = true;
-        truckGroup.add(cabBody);
-
-        // Aerodynamic High-Roof Fairing Cap
-        const roofCap = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.1, 3.8), lacquerMat);
-        roofCap.position.set(0, 4.7, 3.8);
-        roofCap.castShadow = true;
-        truckGroup.add(roofCap);
-
-        // Panoramic Dark Privacy Windshield (Raked 45 degrees)
-        const windshield = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.15, 0.08), glassMat);
-        windshield.position.set(0, 3.55, 6.15);
-        windshield.rotation.x = -Math.PI / 8;
-        truckGroup.add(windshield);
-
-        // Chrome Drop Sun Visor
-        const sunVisor = new THREE.Mesh(new THREE.BoxGeometry(2.55, 0.15, 0.5), chromeMat);
-        sunVisor.position.set(0, 4.15, 6.32);
-        sunVisor.rotation.x = Math.PI / 10;
-        truckGroup.add(sunVisor);
-
-        // 5 Amber Roof Clearance Lights
-        for (let i = -2; i <= 2; i++) {
-            const marker = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.1, 8), new THREE.MeshBasicMaterial({ color: 0xF59E0B }));
-            marker.rotation.x = Math.PI / 2;
-            marker.position.set(i * 0.42, 4.28, 6.38);
-            truckGroup.add(marker);
-        }
-
-        // Dual 8-Inch Mirror Chrome Turnout Exhaust Stacks
-        for (let side of [-1.38, 1.38]) {
-            const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 5.0, 32), chromeMat);
-            stack.position.set(side, 4.6, 1.8);
-            stack.castShadow = true;
-            truckGroup.add(stack);
-
-            const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.65, 24), chromeMat);
-            tip.position.set(side, 7.25, 1.68);
-            tip.rotation.x = -Math.PI / 4;
-            truckGroup.add(tip);
-
-            const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 2.2, 32, 1, true), chromeMat);
-            shield.position.set(side, 3.4, 1.8);
-            truckGroup.add(shield);
-        }
-
-        // Side Fuel Tanks & Serrated Steps
-        const tankGeo = new THREE.CylinderGeometry(0.55, 0.55, 3.0, 32);
-        const strapMat = new THREE.MeshStandardMaterial({ color: 0x0A0F1D, roughness: 0.9 });
-        const stepMat = new THREE.MeshStandardMaterial({ color: 0xE2E8F0, metalness: 0.9, roughness: 0.3 });
-
-        for (let side of [-1.4, 1.4]) {
-            const tankGroup = new THREE.Group();
-            const tank = new THREE.Mesh(tankGeo, chromeMat);
-            tank.rotation.x = Math.PI / 2;
-            tankGroup.add(tank);
-
-            for (let z of [-0.85, 0.85]) {
-                const strap = new THREE.Mesh(new THREE.CylinderGeometry(0.57, 0.57, 0.08, 32), strapMat);
-                strap.rotation.x = Math.PI / 2;
-                strap.position.z = z;
-                tankGroup.add(strap);
-            }
-
-            const step = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.08, 2.0), stepMat);
-            step.position.set(side > 0 ? 0.45 : -0.45, 0.28, 0);
-            tankGroup.add(step);
-
-            tankGroup.position.set(side, 1.2, 4.3);
-            truckGroup.add(tankGroup);
-        }
-
-        // 3. 53-FOOT CORRUGATED STAINLESS REEFER TRAILER
-        const trailerGroup = new THREE.Group();
-        trailerGroup.position.set(0, 0, -8.2);
-
-        const trailerBox = new THREE.Mesh(new THREE.BoxGeometry(2.7, 3.8, 15.8), trailerAlloyMat);
-        trailerBox.position.set(0, 3.45, 0);
-        trailerBox.castShadow = true;
-        trailerBox.receiveShadow = true;
-        trailerGroup.add(trailerBox);
-
-        // Front Thermo King Unit
-        const reeferUnit = new THREE.Group();
-        reeferUnit.position.set(0, 3.8, 8.05);
-        const reeferBody = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.8, 0.7), new THREE.MeshStandardMaterial({ color: 0xF8FAFC, roughness: 0.3 }));
-        reeferUnit.add(reeferBody);
-        const ledDisp = new THREE.Mesh(new THREE.PlaneGeometry(0.45, 0.18), new THREE.MeshBasicMaterial({ color: 0x38BDF8 }));
-        ledDisp.position.set(0, -0.45, 0.38);
-        reeferUnit.add(ledDisp);
-        trailerGroup.add(reeferUnit);
-
-        // Aerodynamic Skirts
-        const skirtMat = new THREE.MeshStandardMaterial({ color: 0xF1F5F9, roughness: 0.4 });
-        for (let side of [-1.34, 1.34]) {
-            const skirt = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.75, 9.8), skirtMat);
-            skirt.position.set(side, 1.2, 0.5);
-            skirt.castShadow = true;
-            trailerGroup.add(skirt);
-        }
-
-        // Landing Gear
-        for (let side of [-1.05, 1.05]) {
-            const leg = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.3, 0.16), darkAeroMat);
-            leg.position.set(side, 0.95, 4.8);
-            trailerGroup.add(leg);
-        }
-
-        // Rear DOT ICC Safety Bumper
-        const iccBar = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.16, 0.12), new THREE.MeshStandardMaterial({ color: 0xDC2626, metalness: 0.8, roughness: 0.2 }));
-        iccBar.position.set(0, 0.8, -7.95);
-        trailerGroup.add(iccBar);
-
-        for (let side of [-1.1, 1.1]) {
-            const flap = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.75, 0.04), new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.9 }));
-            flap.position.set(side, 0.75, -7.8);
-            trailerGroup.add(flap);
-        }
-
-        truckGroup.add(trailerGroup);
-
-        // 4. ALCOA DURA-BRIGHT CHROME WHEELS (10 on Tractor, 8 on Trailer)
-        const rollingWheels = [];
-
-        function buildAlcoaWheel() {
-            const wheel = new THREE.Group();
-            const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.42, 32), tireMat);
-            tire.rotation.z = Math.PI / 2;
-            tire.castShadow = true;
-            wheel.add(tire);
-
-            const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.43, 24), chromeMat);
-            rim.rotation.z = Math.PI / 2;
-            wheel.add(rim);
-
-            const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.47, 16), chromeMat);
-            hub.rotation.z = Math.PI / 2;
-            wheel.add(hub);
-            return wheel;
-        }
-
-        for (let side of [-1.32, 1.32]) {
-            const w = buildAlcoaWheel();
-            w.position.set(side, 0.65, 7.8);
-            truckGroup.add(w);
-            rollingWheels.push(w);
-        }
-
-        for (let z of [0.8, -0.6]) {
-            for (let side of [-1.35, 1.35]) {
-                const w = buildAlcoaWheel();
-                w.position.set(side, 0.65, z);
-                truckGroup.add(w);
-                rollingWheels.push(w);
-
-                const qFender = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.72, 0.5, 16, 1, false, 0, Math.PI / 2), chromeMat);
-                qFender.rotation.z = Math.PI / 2;
-                qFender.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
-                qFender.position.set(side, 0.85, z + 0.1);
-                truckGroup.add(qFender);
-            }
-        }
-
-        for (let z of [-12.8, -14.2]) {
-            for (let side of [-1.35, 1.35]) {
-                const w = buildAlcoaWheel();
-                w.position.set(side, 0.65, z);
-                truckGroup.add(w);
-                rollingWheels.push(w);
-            }
-        }
-
-        // ==========================================
-        // DYNAMIC LIGHTING CONTROLLER
-        // ==========================================
-        let currentSkyTex = null;
-
-        function switchTheme(mode) {
-            document.body.className = 'theme-' + mode;
-
-            document.querySelectorAll('.env-pill .env-btn').forEach(b => b.classList.remove('active'));
-            const btn = document.getElementById('btn-' + (mode === 'daylight' ? 'day' : mode === 'sunset' ? 'sunset' : 'night'));
-            if (btn) btn.classList.add('active');
-
-            if (currentSkyTex) currentSkyTex.dispose();
-            currentSkyTex = createSkyTexture(mode);
-            skyMat.map = currentSkyTex;
-            skyMat.needsUpdate = true;
-            scene.environment = currentSkyTex;
-
-            if (mode === 'daylight') {
-                hemiLight.color.setHex(0xFFFFFF);
-                hemiLight.groundColor.setHex(0x94A3B8);
-                hemiLight.intensity = 1.0;
-                sunLight.color.setHex(0xFFFBEB);
-                sunLight.intensity = 2.5;
-                roadMat.color.setHex(0x22262E);
-                desertMesh.material.color.setHex(0xD4C5A1);
-            } else if (mode === 'sunset') {
-                hemiLight.color.setHex(0xF97316);
-                hemiLight.groundColor.setHex(0x3B0764);
-                hemiLight.intensity = 0.9;
-                sunLight.color.setHex(0xFDBA74);
-                sunLight.intensity = 2.8;
-                roadMat.color.setHex(0x1F1422);
-                desertMesh.material.color.setHex(0x833824);
-            } else {
-                hemiLight.color.setHex(0x1E293B);
-                hemiLight.groundColor.setHex(0x020617);
-                hemiLight.intensity = 0.45;
-                sunLight.color.setHex(0x38BDF8);
-                sunLight.intensity = 1.2;
-                roadMat.color.setHex(0x0F172A);
-                desertMesh.material.color.setHex(0x0B0F19);
-            }
-        }
-
-        switchTheme('daylight');
-
-        // Color Customizer
-        window.setCabColor = function(hex, el) {
-            lacquerMat.color.setHex(hex);
-            document.querySelectorAll('.dot').forEach(s => s.classList.remove('active'));
-            el.classList.add('active');
-        };
-
-        // Camera Views (Strictly maintains unobstructed right viewport)
-        window.setCameraAngle = function(idx, el) {
-            document.querySelectorAll('.c-btn').forEach(b => b.classList.remove('active'));
+        // CAB FINISH CHANGER (Dynamic Filter Tint)
+        function setFinish(name, el) {
+            playPneumaticSound();
+            document.querySelectorAll('.chips-finish .dot-finish').forEach(d => d.classList.remove('active'));
             el.classList.add('active');
 
-            if (idx === 1) { // 3/4 Cruiser
-                targetCam.set(12.0, 5.0, 20.0);
-                targetLook.set(2.5, 2.0, -1.0);
-            } else if (idx === 2) { // Front Grille Close-up
-                targetCam.set(3.0, 2.4, 15.5);
-                targetLook.set(3.0, 2.3, 9.6);
-            } else if (idx === 3) { // 65mph Profile
-                targetCam.set(18.0, 3.8, 1.0);
-                targetLook.set(3.0, 2.2, -1.0);
-            } else if (idx === 4) { // Top Fleet Radar
-                targetCam.set(2.0, 30.0, 4.0);
-                targetLook.set(3.0, 0, 0);
+            if (name === 'obsidian') {
+                truckImg.style.filter = 'drop-shadow(0 25px 45px rgba(0,0,0,0.95)) drop-shadow(0 0 35px rgba(0,229,255,0.15))';
+            } else if (name === 'sapphire') {
+                truckImg.style.filter = 'drop-shadow(0 25px 45px rgba(0,0,0,0.95)) hue-rotate(180deg) saturate(1.4) brightness(0.95)';
+            } else if (name === 'crimson') {
+                truckImg.style.filter = 'drop-shadow(0 25px 45px rgba(0,0,0,0.95)) hue-rotate(320deg) saturate(1.8) brightness(1.05)';
+            } else if (name === 'white') {
+                truckImg.style.filter = 'drop-shadow(0 25px 45px rgba(0,0,0,0.95)) brightness(1.25) contrast(1.1)';
+            } else if (name === 'titanium') {
+                truckImg.style.filter = 'drop-shadow(0 25px 45px rgba(0,0,0,0.95)) contrast(1.2) saturate(0.5)';
             }
-        };
-
-        // 65 MPH Highway Kinematics Loop
-        const clock = new THREE.Clock();
-        const SPEED = 26.0;
-
-        function animate() {
-            requestAnimationFrame(animate);
-            const delta = clock.getDelta();
-
-            camera.position.lerp(targetCam, 0.05);
-            controls.target.lerp(targetLook, 0.05);
-            controls.update();
-
-            const angVel = (SPEED / 0.65) * delta;
-            for (let w of rollingWheels) {
-                w.children[0].rotation.x += angVel;
-            }
-
-            for (let d of laneDashesGroup.children) {
-                d.position.z -= SPEED * delta;
-                if (d.position.z < -300) {
-                    d.position.z += 600;
-                }
-            }
-
-            truckGroup.position.y = Math.sin(clock.getElapsedTime() * 14) * 0.01;
-
-            renderer.render(scene, camera);
         }
-        animate();
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            applyCameraOffset();
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        // PERSPECTIVE SWITCHER (Smooth Zoom/Pan Crop)
+        function setPerspective(p, el) {
+            playPneumaticSound();
+            document.querySelectorAll('.persp-grid .btn-persp').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+
+            if (p === 'hero') {
+                stage.style.transformOrigin = 'center center';
+                truckImg.style.transform = 'scale(1.0) translate(0, 0)';
+            } else if (p === 'grille') {
+                stage.style.transformOrigin = '25% 60%';
+                truckImg.style.transform = 'scale(1.5) translate(15%, -8%)';
+            } else if (p === 'engine') {
+                stage.style.transformOrigin = '35% 55%';
+                truckImg.style.transform = 'scale(1.7) translate(10%, -10%)';
+            } else if (p === 'full') {
+                stage.style.transformOrigin = 'center center';
+                truckImg.style.transform = 'scale(0.92) translate(0, 0)';
+            }
+        }
+
+        function focusHotspot(id) {
+            playPneumaticSound();
+        }
+
+        // WEB AUDIO API SYNTHESIZER
+        let audioCtx = null;
+        let isAudio = false;
+
+        function toggleAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            isAudio = !isAudio;
+            const btn = document.getElementById('audio-toggle');
+            const txt = document.getElementById('audio-txt');
+            if (isAudio) {
+                btn.classList.add('active');
+                txt.innerText = 'AUDIO FX: 45Hz SOTA';
+                playPneumaticSound();
+            } else {
+                btn.classList.remove('active');
+                txt.innerText = 'AUDIO FX: OFF';
+            }
+        }
+
+        function playPneumaticSound() {
+            if (!isAudio || !audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.08);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.08);
+        }
+
+        function playHydraulicSound() {
+            if (!isAudio || !audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(90, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(170, audioCtx.currentTime + 0.15);
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // YIELD CALCULATOR
+        function openYieldModal() {
+            playHydraulicSound();
+            document.getElementById('calc-modal').classList.add('active');
+            calcYield();
+        }
+
+        function closeYieldModal() {
+            playPneumaticSound();
+            document.getElementById('calc-modal').classList.remove('active');
+        }
+
+        function closeModalBg(e) {
+            if (e.target === document.getElementById('calc-modal')) {
+                closeYieldModal();
+            }
+        }
+
+        function calcYield() {
+            const miles = parseInt(document.getElementById('input-miles').value);
+            const rate = parseFloat(document.getElementById('input-rate').value);
+            document.getElementById('miles-disp').innerText = `${miles.toLocaleString()} MI`;
+            document.getElementById('rate-disp').innerText = `$${rate.toFixed(2)} / MI`;
+
+            const gross = Math.round(miles * rate);
+            const fee = Math.round(gross * 0.05);
+
+            document.getElementById('disp-gross').innerText = `$${gross.toLocaleString()}`;
+            document.getElementById('disp-fee').innerText = `$${fee.toLocaleString()}`;
+        }
+
+        function openOnboard() {
+            playPneumaticSound();
+            alert("AETHER // ONBOARDING DESK ACTIVATED\nSynchronizing carrier authority with DAT One Spot Corridors...");
+        }
     </script>
 </body>
 </html>
